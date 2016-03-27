@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<PreferenceCategory 
+		android:title="General">
+
+		<Preference
+            android:title="Set live wallpaper"
+			android:summary="Set this as your wallpaper"
+            android:key="setWallpaper" 
+		/>
+	
+		<Preference
+            android:title="Change max FPS"
+			android:summary="Higher framerates will look smoother, but also consume more battery"
+            android:key="fps" 
+		/>
+	
+	</PreferenceCategory>
+
+	<PreferenceCategory 
+		android:title="Circles">
+
+		<Preference
+            android:title="Change amount"
+			android:summary="Change amount of circles"
+            android:key="count" 
+		/>
+		
+		<Preference
+            android:title="Change circle size"
+			android:summary="Change min and max values for the size of the circles"
+            android:key="size" 
+		/>
+		
+		<CheckBoxPreference
+            android:title="Enable blur"
+			android:summary="Blur some of the circles"
+            android:key="blur" 
+			android:defaultValue="true"
+		/>
+
+		<Preference
+            android:title="Change blur strength"
+			android:summary="Change strength of the blur"
+            android:key="blurStrength" 
+			android:dependency="blur"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable rings"
+			android:summary="Render some circles as rings instead of as circles"
+            android:key="rings" 
+			android:defaultValue="true"
+		/>
+	
+		<Preference
+            android:title="Change ring amount"
+			android:summary="Change percentage of circles that should be rings"
+            android:key="ringPercentage" 
+			android:dependency="rings"
+		/>
+	
+		<Preference
+            android:title="Change ring width"
+			android:summary="Change width of the rings"
+            android:key="ringWidth" 
+			android:dependency="rings"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable flickering"
+			android:summary="Enable flickering of the circles"
+            android:key="flickering" 
+			android:defaultValue="true"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Interpolate colors"
+			android:summary="Color circles in an inbetween color"
+            android:key="interpolate" 
+			android:defaultValue="true"
+		/>
+		
+		<Preference
+            android:title="Choose first circle color"
+			android:summary="Choose the first color of the circles"
+            android:key="colorCircle1" 
+			android:defaultValue="#ffff00"
+		/>
+		
+		<Preference
+            android:title="Choose second circle color"
+			android:summary="Choose the second color of the circle"
+            android:key="colorCircle2" 
+			android:defaultValue="#ffCC00"
+		/>
+	
+		<Preference
+            android:title="Change circle alpha"
+			android:summary="Change min and max values for the alpha of the circles"
+            android:key="alpha" 
+		/>
+	
+	</PreferenceCategory>
+
+	<PreferenceCategory 
+		android:title="Background">
+		
+		<Preference
+            android:title="Choose top background color"
+			android:summary="Choose the color of the background at the top"
+            android:key="colorBackground1" 
+			android:defaultValue="#ff8800"
+		/>
+
+		<Preference
+            android:title="Choose bottom background color"
+			android:summary="Choose the color of the background at the bottom"
+            android:key="colorBackground2" 
+			android:defaultValue="#ff4400"
+		/>
+		
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Animation">
+
+		<Preference
+            android:title="Change animation speed"
+			android:summary="Change min and max values for the animation speed of the circles"
+            android:key="speed" 
+		/>
+	
+		<Preference
+            android:title="Change randomness"
+			android:summary="Change how random the movement of the circles should be"
+            android:key="direction" 
+		/>
+		
+	</PreferenceCategory>
+
+	<PreferenceCategory 
+		android:title="Interactivity">
+		
+		<CheckBoxPreference
+            android:title="Enable touch input"
+			android:summary="Enable touch interactivity"
+            android:key="touch" 
+			android:defaultValue="true"
+		/>
+
+		<Preference
+            android:title="Change touch sensitivity"
+			android:summary="Change how sensitive the circles react to a touch"
+            android:key="touchSensitivity" 
+			android:dependency="touch"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable swipe"
+			android:summary="Enable swipe interactivity"
+            android:key="swipe" 
+			android:defaultValue="true"
+		/>
+	
+		<Preference
+            android:title="Change swipe sensitivity"
+			android:summary="Change how sensitive the circles react to a swipe"
+            android:key="swipeSensitivity" 
+			android:dependency="swipe"
+		/>
+		
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Debug">
+
+		<Preference
+            android:title="Crash"
+			android:summary="Crash this application for debug purposes"
+            android:key="crash" 
+		/>
+	</PreferenceCategory>
+</PreferenceScreen>
