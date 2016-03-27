@@ -48,6 +48,18 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	private float delta;
 	
 	private int maxFPS = 45;
+	private int fps;
+	private long lastFPS;
+	
+	private final Runnable fpsRunnable = new Runnable()
+	{
+		@Override
+		public void run()
+		{
+			((WallpaperPreferenceActivity) context).getActionBar().setTitle(context.getString(R.string.app_name) + " - " + fps + " FPS");
+			fps = 0;
+		}
+	};
 	
 	public CyrcleRenderer(Context context)
 	{
@@ -108,7 +120,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			if (circles[i] == null)
 				circles[i] = new Circle(this);
 				
-			circles[i].spawn();
+			circles[i].setTarget();
+			circles[i].velX += circles[i].targetX - circles[i].posX;
+			circles[i].velY += circles[i].targetY - circles[i].posY;
+			
 		}
 	}
 	
@@ -216,7 +231,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			texture1.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 			texture1.bind(1);
 		
-			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.015F));
+			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.1F));
 			
 			for (x = 0; x < size; ++x)
 				for (y = 0; y < size; ++y)
@@ -302,7 +317,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			texture3.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 			texture3.bind(3);
 			
-			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.015F));
+			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.1F));
 
 			for (x = 0; x < size; ++x)
 				for (y = 0; y < size; ++y)
@@ -391,6 +406,16 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 		lastTime = System.currentTimeMillis();
 		
+		fps++;
+
+		if (lastFPS + 1000 < System.currentTimeMillis())
+		{
+			if (isPreview)
+				((WallpaperPreferenceActivity) context).runOnUiThread(fpsRunnable);
+				
+			lastFPS = System.currentTimeMillis();
+		}
+		
 		if (updateTextures)
 		{
 			updateTextures();
@@ -453,8 +478,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				if (circles[i] == null)
 					circles[i] = new Circle(this);
 
-				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.025F;
-				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.025F;
+				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F);
+				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F);
 			}
 		
 		lastXOffset = xOffset;
@@ -482,8 +507,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
 					
-				circles[i].velX += Math.signum(deltaX) * distance / circles[i].size * 0.005F;
-				circles[i].velY += Math.signum(deltaY) * distance / circles[i].size * 0.005F;
+				circles[i].velX += Math.signum(deltaX) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F);
+				circles[i].velY += Math.signum(deltaY) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F);
 			}
 		}
 	}
@@ -497,8 +522,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		else if (key.equals("sizeMin") || key.equals("sizeMax")
 			|| key.equals("alphaMin") || key.equals("alphaMax")
 			|| key.equals("colorCircle1") || key.equals("colorCircle2")
-			|| key.equals("interpolate") || key.equals("blur") || key.equals("flickering") 
+			|| key.equals("interpolate") || key.equals("flickering") 
 			|| key.equals("rings") || key.equals("ringPercentage")
+		 	|| key.equals("blur") || key.equals("blurPercentage")
 		 	|| key.equals("direction") || key.equals("speed")
 			)
 			for (int i = 0; i < circles.length; ++i)
@@ -509,7 +535,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				circles[i].spawn();
 			}
 			
-		else if (key.equals("blurStrength") || key.equals("ringWidth"))
+		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("maxSize"))
 			updateTextures = true;
 			
 		else if (key.equals("count"))

@@ -40,6 +40,13 @@
 		/>
 
 		<Preference
+            android:title="Change blur amount"
+			android:summary="Change percentage of circles that should be blured"
+            android:key="blurPercentage" 
+			android:dependency="blur"
+		/>
+	
+		<Preference
             android:title="Change blur strength"
 			android:summary="Change strength of the blur"
             android:key="blurStrength" 

@@ -8,6 +8,7 @@ import android.util.*;
 import android.view.*;
 import android.widget.*;
 import com.taraxippus.cyrcle.gl.*;
+import android.widget.FrameLayout.*;
 
 public class WallpaperPreferenceActivity extends Activity
 {
@@ -20,7 +21,7 @@ public class WallpaperPreferenceActivity extends Activity
 		
 		setContentView(R.layout.main);
 		
-		GLSurfaceView v = new GLSurfaceView(this);
+		final GLSurfaceView v = new GLSurfaceView(this);
 		v.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
 		v.setPreserveEGLContextOnPause(true);
 		v.setEGLContextClientVersion(2);
@@ -32,6 +33,21 @@ public class WallpaperPreferenceActivity extends Activity
 		display.getSize(size);
 		renderer.setPreview(size.y);
 		
-		((FrameLayout) findViewById(R.id.layout_preview)).addView(v, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics())));
+		final ViewGroup.LayoutParams small = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics()));
+		final ViewGroup.LayoutParams big = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+		
+		v.setOnClickListener(new View.OnClickListener()
+		{
+				@Override
+				public void onClick(View p1)
+				{
+					if (v.getLayoutParams() == small)
+						v.setLayoutParams(big);
+					else
+						v.setLayoutParams(small);
+				}
+		});
+		
+		((FrameLayout) findViewById(R.id.layout_preview)).addView(v, small);
 	}
 }

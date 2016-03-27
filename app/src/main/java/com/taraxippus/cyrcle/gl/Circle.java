@@ -9,11 +9,14 @@ public class Circle
 	public final CyrcleRenderer renderer;
 	
 	float posX, posY;
+	float targetX, targetY;
 	float velX, velY;
 	float red, green, blue, alpha;
 	float size;
 	
 	int texture;
+	
+	long changeTarget;
 	
 	public Circle(CyrcleRenderer renderer)
 	{
@@ -58,14 +61,51 @@ public class Circle
 		size = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
 		
 		texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 3 : 1;
-		texture += renderer.preferences.getBoolean("blur", true) ? renderer.random.nextInt(2) : 0;
+		texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
+		
+		setTarget();
 	}
 	
+	public void setTarget()
+	{
+		targetX = (renderer.random.nextFloat() * 2F - 1F) * ((float) renderer.width / renderer.height);
+		targetY = renderer.random.nextFloat() * 2F - 1F;
+		
+		deltaX = targetX;
+		deltaY = targetY;
+		length = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+		
+		changeTarget = System.currentTimeMillis() + renderer.random.nextInt(40000) + 150000;
+	}
+	
+	private float deltaX, deltaY, length;
 	public void update(FloatBuffer vertices, float delta)
 	{
+		deltaX = targetX - posX;
+		deltaY = targetY - posY;
+		length = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+		
+		if (length < 0.05F || System.currentTimeMillis() <= changeTarget)
+			setTarget();
+		
+		velX = velX * 0.95F + deltaX / length * 0.01F;
+		velY = velY * 0.95F + deltaY / length * 0.01F;
+		
 		posX += velX * delta;
 		posY += velY * delta;
 		
+		if (posX < (float) renderer.width / renderer.height * -1.5F)
+			posX +=  (float) renderer.width / renderer.height * 3;
+			
+		if (posX > (float) renderer.width / renderer.height * 1.5F)
+			posX -=  (float) renderer.width / renderer.height * 3;
+		
+		if (posY < -1.5F)
+			posY += 3;
+		
+		if (posY > 1.5F)
+			posY -= 3;
+			
 		vertices.put(posX - size);
 		vertices.put(posY - size);
 
