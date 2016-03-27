@@ -46,6 +46,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	private long lastTime;
 	private float delta;
+	private float fixedDelta = 1 / 60F;
+	private float accumulator;
+	private float time;
 	
 	private int maxFPS = 45;
 	private int fps;
@@ -91,6 +94,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		updateTextures();
 		
 		maxFPS = (int) preferences.getFloat("fps", 45);
+		
+		lastTime = 0;
 	}
 	
 	public void setPreview(int realHeight)
@@ -121,10 +126,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				circles[i] = new Circle(this);
 				
 			circles[i].setTarget();
-			circles[i].velX += circles[i].targetX - circles[i].posX;
-			circles[i].velY += circles[i].targetY - circles[i].posY;
+			circles[i].velX += (circles[i].targetX - circles[i].posX) * 2;
+			circles[i].velY += (circles[i].targetY - circles[i].posY) * 2;
 			
 		}
+		
+		lastTime = 0;
 	}
 	
 	public void updateMVP()
@@ -382,7 +389,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		vertices_circle.position(0);
 		
 		for (Circle circle : circles)
-			circle.update(vertices_circle, delta);
+			circle.buffer(vertices_circle);
 	}
 	
 	@Override
@@ -393,9 +400,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		if (lastTime == 0)
 			lastTime = System.currentTimeMillis() - 1;
-
+			
 		delta = (System.currentTimeMillis() - lastTime) / 1000F;
-
+		
 		if (delta < 1F / maxFPS)
 			try
 			{
@@ -408,6 +415,20 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				e.printStackTrace();
 			}
 			
+		if (delta > 0.5F)
+			delta = 0.5F;
+
+		accumulator += delta;
+
+		while (accumulator >= fixedDelta)
+		{
+			for (Circle circle : circles)
+				circle.update(time, fixedDelta);
+
+			time += fixedDelta;
+			accumulator -= fixedDelta;
+		}
+		
 		lastTime = System.currentTimeMillis();
 		
 		fps++;
@@ -521,17 +542,26 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			|| key.equals("interpolate") || key.equals("flickering") 
 			|| key.equals("rings") || key.equals("ringPercentage")
 		 	|| key.equals("blur") || key.equals("blurPercentage")
-		 	|| key.equals("direction") || key.equals("speed")
-			)
-			for (int i = 0; i < circles.length; ++i)
+			|| key.equals("respawn") || key.equals("lifeTimeMin") || key.equals("lifeTimeMax"))
+			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (circles[i] == null)
-				circles[i] = new Circle(this);
+					circles[i] = new Circle(this);
 
 				circles[i].spawn();
 			}
 			
-		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("maxSize"))
+		else if (key.equals("randomnessMin") || key.equals("randomnessMax")
+			|| key.equals("speedMin") || key.equals("speedMax"))
+			for (int i = 0; circles != null && i < circles.length; ++i)
+			{
+				if (circles[i] == null)
+					circles[i] = new Circle(this);
+
+				circles[i].setTarget();
+			}
+			
+		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("sizeMax"))
 			updateTextures = true;
 			
 		else if (key.equals("count"))

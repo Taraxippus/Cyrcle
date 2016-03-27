@@ -61,6 +61,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
 		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
 
+		chooseValue("count", "Amount", "", 1, 1000, 1, 10);
 		chooseMinMax("size", 0, 1, 100, 0.25F, 0.75F);
 		chooseValue("blurStrength", "blur strength", "", 0.005F, 0.25F, 1000, 0.1F);
 		chooseValue("blurPercentage", "blur percentage", " %", 0, 100, 1, 45);
@@ -73,10 +74,10 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 		chooseColor("colorBackground1", "#ff8800");
 		chooseColor("colorBackground2", "#ff4400");
 
-		chooseMinMax("speed", 0, 1, 3, 0.25F, 0.75F);
-		chooseMinMax("direction", 0, 1, 10, 0.25F, 0.75F);
-		chooseValue("count", "Amount", "", 1, 1000, 1, 10);
-
+		chooseMinMax("lifeTime", 2, 120, 1, 30F, 60F);
+		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
+		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
+		
 		chooseValue("touchSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
 		chooseValue("swipeSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
     }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	
 	<PreferenceCategory 
 		android:title="General">
 
@@ -132,6 +133,20 @@
 	<PreferenceCategory 
 		android:title="Animation">
 
+		<CheckBoxPreference
+            android:title="Respawn"
+			android:summary="Old circles disappear and new circles are spawned"
+            android:key="respawn" 
+			android:defaultValue="true"
+		/>
+	
+		<Preference
+            android:title="Change circle lifetime"
+			android:summary="Change min and max values for the time until a circle dies"
+            android:key="lifeTime" 
+			android:dependency="respawn"
+		/>
+		
 		<Preference
             android:title="Change animation speed"
 			android:summary="Change min and max values for the animation speed of the circles"
@@ -141,7 +156,7 @@
 		<Preference
             android:title="Change randomness"
 			android:summary="Change how random the movement of the circles should be"
-            android:key="direction" 
+            android:key="randomness" 
 		/>
 		
 	</PreferenceCategory>
