@@ -161,13 +161,15 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, ibo_circle[0]);
 		GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, indices_circle.capacity() * 2, indices_circle, GLES20.GL_STATIC_DRAW);
 		GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+		
+		updateCircleShape = false;
 	}
 	
 	public void updateTextures()
 	{
-		if (program_circles.initialized())
+		if (program_circles.initialized() && height > 0)
 		{
-			int size = 128;
+			int size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * (isPreview ? 0.5F : 1));
 			int blurSize = 1;
 			float ringWidth = preferences.getFloat("ringWidth", 0.1F);
 			int[] colors1 = new int[size * size];
@@ -346,6 +348,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			GLES20.glUniform1i(program_circles.getUniform("u_Texture2"), 2);
 			GLES20.glUniform1i(program_circles.getUniform("u_Texture3"), 3);
 			GLES20.glUniform1i(program_circles.getUniform("u_Texture4"), 4);
+			
+			updateTextures = false;
 		}
 	}
 	
@@ -392,11 +396,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		lastTime = System.currentTimeMillis();
 		
 		if (updateTextures)
-		{
 			updateTextures();
-			
-			updateTextures = false;
-		}
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
@@ -404,11 +404,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		program_circles.use();
 		
 		if (updateCircleShape)
-		{
 			updateCircleShape();
-
-			updateCircleShape = false;
-		}
 		
 		updateCircles();
 		
