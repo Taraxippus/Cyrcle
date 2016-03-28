@@ -519,8 +519,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				if (circles[i] == null)
 					circles[i] = new Circle(this);
 
-				deltaX = circles[i].posX - x;
-				deltaY = circles[i].posY - y;
+				deltaX = circles[i].posX + circles[i].randomPosX - x;
+				deltaY = circles[i].posY + circles[i].randomPosY - y;
 				
 				distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
 					
@@ -542,7 +542,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			|| key.equals("interpolate") || key.equals("flickering") 
 			|| key.equals("rings") || key.equals("ringPercentage")
 		 	|| key.equals("blur") || key.equals("blurPercentage")
-			|| key.equals("respawn") || key.equals("lifeTimeMin") || key.equals("lifeTimeMax"))
+			|| key.equals("respawn") || key.equals("lifeTimeMin") || key.equals("lifeTimeMax")
+			|| key.equals("directionXMin") || key.equals("directionXMax")
+			|| key.equals("directionYMin") || key.equals("directionYMax"))
+				 
 			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (circles[i] == null)
@@ -553,6 +556,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 		else if (key.equals("randomnessMin") || key.equals("randomnessMax")
 			|| key.equals("speedMin") || key.equals("speedMax"))
+		
 			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (circles[i] == null)

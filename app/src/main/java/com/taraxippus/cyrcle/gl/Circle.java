@@ -1,4 +1,5 @@
 package com.taraxippus.cyrcle.gl;
+
 import android.graphics.*;
 import java.nio.*;
 
@@ -11,7 +12,7 @@ public class Circle
 	float posX, posY;
 	float randomPosX, randomPosY;
 	float targetX, targetY;
-	float velX, velY;
+	float velX, velY, directionVelX, directionVelY;
 	float red, green, blue, alpha, alpha1;
 	float size;
 	float speed;
@@ -68,6 +69,9 @@ public class Circle
 		
 		texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 3 : 1;
 		texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
+		
+		directionVelX = renderer.preferences.getFloat("directionXMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionXMax", 0.75F) - renderer.preferences.getFloat("directionXMin", 0.25F));
+		directionVelY = renderer.preferences.getFloat("directionYMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionYMax", 0.75F) - renderer.preferences.getFloat("directionYMin", 0.25F));
 		
 		setTarget();
 		
@@ -186,17 +190,23 @@ public class Circle
 		posX += velX * delta;
 		posY += velY * delta;
 		
-		if (posX < (float) renderer.width / renderer.height * -1.5F)
-			posX +=  (float) renderer.width / renderer.height * 3;
+		if (renderer.preferences.getBoolean("direction", false))
+		{
+			posX += 0.5F * directionVelX * delta;
+			posY += 0.5F * directionVelY * delta;
+		}
+		
+		if (posX + randomPosX < (float) -renderer.width / renderer.height - size)
+			posX +=  (float) renderer.width / renderer.height * 2 + size * 2;
 			
-		if (posX > (float) renderer.width / renderer.height * 1.5F)
-			posX -=  (float) renderer.width / renderer.height * 3;
+		if (posX + randomPosX > (float) renderer.width / renderer.height + size)
+			posX -=  (float) renderer.width / renderer.height * 2 + size * 2;
 		
-		if (posY < -1.5F)
-			posY += 3;
+		if (posY + randomPosY < -1 - size)
+			posY += 2 + size * 2;
 		
-		if (posY > 1.5F)
-			posY -= 3;
+		if (posY + randomPosY > 1 + size)
+			posY -= 2 + size * 2;
 			
 		randomPosX = randomPosX * 0.9F + (float) Math.cos(time * randomSpeedX * 2 + randomOffsetX) * randomScaleX * 0.015F;
 		randomPosY = randomPosY * 0.9F + (float) Math.cos(time * randomSpeedY * 2 + randomOffsetY) * randomScaleY * 0.015F;

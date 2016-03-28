@@ -77,6 +77,8 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 		chooseMinMax("lifeTime", 2, 120, 1, 30F, 60F);
 		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
+		chooseMinMax("directionX", -1, 1, 100, 0.25F, 0.75F);
+		chooseMinMax("directionY", -1, 1, 100, 0.25F, 0.75F);
 		
 		chooseValue("touchSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
 		chooseValue("swipeSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);

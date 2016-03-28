@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	
+	<Preference
+		android:title=""
+		android:summary="Tap preview to enlarge.\nThe wallpaper might take a while to load."
+	/>
+
 	<PreferenceCategory 
 		android:title="General">
 
@@ -159,6 +164,27 @@
             android:key="randomness" 
 		/>
 		
+		<CheckBoxPreference
+            android:title="Enable general direction"
+			android:summary="Move all circles in one direction"
+            android:key="direction" 
+			android:defaultValue="false"
+		/>
+	
+		<Preference
+            android:title="Change horizontal direction"
+			android:summary="Change min and max values for the horizontal direction"
+            android:key="directionX" 
+			android:dependency="direction"
+		/>
+		
+		<Preference
+            android:title="Change vertical direction"
+			android:summary="Change min and max values for the vertical direction"
+            android:key="directionY" 
+			android:dependency="direction"
+		/>
+	
 	</PreferenceCategory>
 
 	<PreferenceCategory 
