@@ -3,7 +3,7 @@
 	
 	<Preference
 		android:title=""
-		android:summary="Tap preview to enlarge.\nThe wallpaper might take a while to load."
+		android:summary="Tap preview to enlarge. Tap again to return to the normal layout.\nThe wallpaper might take a while to load, depending on resolution of the screen, strength of the blur and maximum size of the circles."
 	/>
 
 	<PreferenceCategory 
@@ -93,7 +93,7 @@
             android:key="interpolate" 
 			android:defaultValue="true"
 		/>
-		
+	
 		<Preference
             android:title="Choose first circle color"
 			android:summary="Choose the first color of the circles"
@@ -114,6 +114,36 @@
             android:key="alpha" 
 		/>
 	
+		<CheckBoxPreference
+            android:title="Enable custom circle texture"
+			android:summary="Use a custom texture for the circles"
+            android:key="circleTexture" 
+			android:defaultValue="false"
+		/>
+	
+		<Preference
+            android:title="Pick custom texture"
+			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
+            android:key="pickCircleTexture" 
+			android:defaultValue="false"
+			android:dependency="circleTexture"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable custom ring texture"
+			android:summary="Use a custom texture for the rings. (You can use this as a variant, it doesn't have to be related to rings)"
+            android:key="ringTexture" 
+			android:defaultValue="false"
+		/>
+
+		<Preference
+            android:title="Pick custom texture"
+			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
+            android:key="pickRingTexture" 
+			android:defaultValue="false"
+			android:dependency="ringTexture"
+		/>
+	
 	</PreferenceCategory>
 
 	<PreferenceCategory 
@@ -132,7 +162,36 @@
             android:key="colorBackground2" 
 			android:defaultValue="#ff4400"
 		/>
+	
+		<CheckBoxPreference
+            android:title="Enable vignette"
+			android:summary="Darken the corners of the screen"
+            android:key="vignette" 
+			android:defaultValue="false"
+		/>
 		
+		<Preference
+            android:title="Vignette strength"
+			android:summary="Change the strength of the vignette"
+            android:key="vignetteStrength" 
+			android:dependency="vignette"
+		/>
+		
+		<Preference
+            android:title="Vignette radius"
+			android:summary="Change the radius of the vignette"
+            android:key="vignetteRadius" 
+			android:dependency="vignette"
+		/>
+	
+		<Preference
+            android:title="Choose vignette color"
+			android:summary="Choose the color of the vignette"
+            android:key="colorVignette" 
+			android:defaultValue="#000000"
+			android:dependency="vignette"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
@@ -185,6 +244,20 @@
 			android:dependency="direction"
 		/>
 	
+		<CheckBoxPreference
+            android:title="Animate rotation"
+			android:summary="Animate the wallpaper when the launcher is rotated"
+            android:key="animateRotate" 
+			android:defaultValue="true"
+		/>
+		
+		<CheckBoxPreference
+            android:title="Animate app change"
+			android:summary="Play an animation when returning to the home screen from an app or turning the screen on"
+            android:key="animateChange" 
+			android:defaultValue="true"
+		/>
+		
 	</PreferenceCategory>
 
 	<PreferenceCategory 
@@ -197,6 +270,14 @@
 			android:defaultValue="true"
 		/>
 
+		<CheckBoxPreference
+            android:title="Invert touch animation"
+			android:summary="Invert the direction of the touch animation"
+            android:key="touchInvert" 
+			android:defaultValue="false"
+			android:dependency="touch"
+		/>
+	
 		<Preference
             android:title="Change touch sensitivity"
 			android:summary="Change how sensitive the circles react to a touch"
@@ -211,6 +292,14 @@
 			android:defaultValue="true"
 		/>
 	
+		<CheckBoxPreference
+            android:title="Invert swipe animation"
+			android:summary="Invert the direction of the swipe animation"
+            android:key="swipeInvert" 
+			android:defaultValue="false"
+			android:dependency="swipe"
+		/>
+		
 		<Preference
             android:title="Change swipe sensitivity"
 			android:summary="Change how sensitive the circles react to a swipe"
@@ -229,4 +318,9 @@
             android:key="crash" 
 		/>
 	</PreferenceCategory>
+	
+	<Preference
+		android:title="About"
+		android:summary="Cyrcle version 1.0\nDeveloped by me"
+	/>
 </PreferenceScreen>

@@ -111,7 +111,7 @@ public class Circle
 		vertices.put(alpha);
 
 		vertices.put(0);
-		vertices.put(0);
+		vertices.put(1);
 		vertices.put(texture);
 
 
@@ -124,7 +124,7 @@ public class Circle
 		vertices.put(alpha);
 
 		vertices.put(0);
-		vertices.put(1);
+		vertices.put(0);
 		vertices.put(texture);
 
 
@@ -137,7 +137,7 @@ public class Circle
 		vertices.put(alpha);
 
 		vertices.put(1);
-		vertices.put(0);
+		vertices.put(1);
 		vertices.put(texture);
 
 
@@ -150,7 +150,7 @@ public class Circle
 		vertices.put(alpha);
 
 		vertices.put(1);
-		vertices.put(1);
+		vertices.put(0);
 		vertices.put(texture);
 	}
 	

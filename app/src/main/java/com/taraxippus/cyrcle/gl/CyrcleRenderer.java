@@ -22,10 +22,11 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public boolean isPreview;
 	public int screenHeight;
 	
-	public final Shape shape_background = new Shape();
+	public final Shape shape_fullscreen = new Shape();
 	
 	public final Program program_background = new Program();
 	public final Program program_circles = new Program();
+	public final Program program_vignette = new Program();
 	
 	public final Texture texture1 = new Texture();
 	public final Texture texture2 = new Texture();
@@ -42,7 +43,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	FloatBuffer vertices_circle;
 	final int[] ibo_circle = new int[1];
 	
-	private boolean updateColors, updateCircleShape, updateTextures;
+	private boolean updateColors, updateCircleShape, updateTextures, updateVignette;
 	
 	private long lastTime;
 	private float delta;
@@ -81,12 +82,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 		program_background.init(context, R.raw.vertex_background, R.raw.fragment_background, "a_Position");
 		program_circles.init(context, R.raw.vertex_circle, R.raw.fragment_circle, "a_Position", "a_Color", "a_UV");
+		program_vignette.init(context, R.raw.vertex_background, R.raw.fragment_vignette, "a_Position");
 		
-		shape_background.init(GLES20.GL_TRIANGLE_STRIP, new float[] {-1, -1,  -1, 1,  1, -1,  1, 1}, 4, 2);
+		shape_fullscreen.init(GLES20.GL_TRIANGLE_STRIP, new float[] {-1, -1,  -1, 1,  1, -1,  1, 1}, 4, 2);
 		
 		updateCircleShape = true;
 		updateColors = true;
 		updateTextures = true;
+		updateVignette = true;
 		
 		Matrix.setLookAtM(matrix_view, 0, 0, 0F, 1F, 0, 0, 0, 0, 1, 0);
 		
@@ -104,6 +107,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		this.isPreview = true;
 	}
 	
+	int lastWidth, lastHeight;
+	
 	@Override
 	public void onSurfaceChanged(GL10 p1, int width, int height)
 	{
@@ -120,18 +125,20 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		updateMVP();
 		
-		for (int i = 0; circles != null && i < circles.length; ++i)
-		{
-			if (circles[i] == null)
-				circles[i] = new Circle(this);
-				
-			circles[i].setTarget();
-			circles[i].velX += (circles[i].targetX - circles[i].posX) * 2;
-			circles[i].velY += (circles[i].targetY - circles[i].posY) * 2;
-			
-		}
+		if (lastWidth == width && lastHeight == height && preferences.getBoolean("animateChange", true) || width == lastHeight && height == lastWidth && preferences.getBoolean("animateRotate", true))
+			for (int i = 0; circles != null && i < circles.length; ++i)
+			{
+				if (circles[i] == null)
+					circles[i] = new Circle(this);
+
+				circles[i].setTarget();
+				circles[i].velX += (circles[i].targetX - circles[i].posX) * 2;
+				circles[i].velY += (circles[i].targetY - circles[i].posY) * 2;
+			}
 		
 		lastTime = 0;
+		lastWidth = width;
+		lastHeight = height;
 	}
 	
 	public void updateMVP()
@@ -197,173 +204,105 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			int[] colors1 = new int[size * size];
 			int[] colors2 = new int[size * size];
 			
-			int x, y, blur, color, r, g, b, a;
+			int x, y;
 			
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-					colors1[x * size + y] = Math.sqrt((x - size / 2F) * (x - size / 2F) + (y - size / 2F) * (y - size / 2F)) < size / 2F * 0.8F ? 0xFF_FFFFFF : 0x00_FFFFFF;
-
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
-
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (x + blur) < 0 || (x + blur) >= size ? 0x00_000000 : colors1[(x + blur) * size + y];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors2[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
-
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (y + blur) < 0 || (y + blur) >= size ? 0x00_000000 : colors2[x * size + y + blur];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors1[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
+			if (preferences.getBoolean("circleTexture", false))
+			{
+				Bitmap bitmap;
 				
-			texture1.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-			texture1.bind(1);
-		
-			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.1F));
-			
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
+				if (preferences.getString("circleTextureFile", "").isEmpty())
 				{
-					a = r = g = b = 0;
-					
-					for (blur = -blurSize; blur < blurSize; blur++)
+					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+				}
+				else
+					try
 					{
-						color = (x + blur) < 0 || (x + blur) >= size ? 0x00_000000 : colors1[(x + blur) * size + y];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
+						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "circleTextureFile");
+					}
+					catch (Exception e)
+					{
+						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
 					}
 					
-					colors2[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-					
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
+				size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+				blur(bitmap.getWidth(), bitmap.getHeight(), (int) (size * preferences.getFloat("blurStrength", 0.1F)), colors1, colors2, bitmap);
 
-					for (blur = -blurSize; blur < blurSize; blur++)
+				texture1.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
+				texture1.bind(1);
+
+				texture2.init(Bitmap.createBitmap(colors1, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture2.bind(2);
+			}
+			else
+			{
+				for (x = 0; x < size; ++x)
+					for (y = 0; y < size; ++y)
+						colors1[x * size + y] = Math.sqrt((x - size / 2F) * (x - size / 2F) + (y - size / 2F) * (y - size / 2F)) < size / 2F * 0.8F ? 0xFF_FFFFFF : 0x00_FFFFFF;
+
+				blur(size, size, 1, colors1, colors2, null);
+
+				texture1.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture1.bind(1);
+				
+				blur(size, size, (int) (size * preferences.getFloat("blurStrength", 0.1F)), colors1, colors2, null);
+
+				texture2.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture2.bind(2);
+			}
+
+			if (preferences.getBoolean("ringTexture", false))
+			{
+				Bitmap bitmap;
+				
+				if (preferences.getString("ringTextureFile", "").isEmpty())
+				{
+					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+				}
+				else
+					try
 					{
-						color = (y + blur) < 0 || (y + blur) >= size ? 0x00_000000 : colors2[x * size + y + blur];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
+						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "ringTextureFile");
+					}
+					catch (Exception e)
+					{
+						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+					}
+				
+				colors1 = new int[bitmap.getWidth() * bitmap.getHeight()];
+				colors2 = new int[bitmap.getWidth() * bitmap.getHeight()];
+				
+				size = Math.min(bitmap.getWidth(), bitmap.getHeight());
+				blur(bitmap.getWidth(), bitmap.getHeight(), (int) (size * preferences.getFloat("blurStrength", 0.1F)), colors1, colors2, bitmap);
+
+				texture3.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
+				texture3.bind(3);
+				
+				texture4.init(Bitmap.createBitmap(colors1, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture4.bind(4);
+			}
+			else
+			{
+				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * (isPreview ? 0.5F : 1));
+				blurSize = 1;
+
+				float length;
+				for (x = 0; x < size; ++x)
+					for (y = 0; y < size; ++y)
+					{
+						length = (float) Math.sqrt((x - size / 2F) * (x - size / 2F) + (y - size / 2F) * (y - size / 2F));
+						colors1[x * size + y] = length < size / 2F * 0.8F && length > size / 2F * 0.8F * (1 - ringWidth) ? 0xFF_FFFFFF : 0x00_FFFFFF;
 					}
 
-					colors1[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-					
-			texture2.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-			texture2.bind(2);
+				blur(size, size, 1, colors1, colors2, null);
 
-			blurSize = 1;
-			
-			float length;
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					length = (float) Math.sqrt((x - size / 2F) * (x - size / 2F) + (y - size / 2F) * (y - size / 2F));
-					colors1[x * size + y] = length < size / 2F * 0.8F && length > size / 2F * 0.8F * (1 - ringWidth) ? 0xFF_FFFFFF : 0x00_FFFFFF;
-				}
-					
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
+				texture3.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture3.bind(3);
 
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (x + blur) < 0 || (x + blur) >= size ? 0x00_000000 : colors1[(x + blur) * size + y];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors2[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
-
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (y + blur) < 0 || (y + blur) >= size ? 0x00_000000 : colors2[x * size + y + blur];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors1[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-			
-			texture3.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-			texture3.bind(3);
-			
-			blurSize = (int) (size * preferences.getFloat("blurStrength", 0.1F));
-
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
-
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (x + blur) < 0 || (x + blur) >= size ? 0x00_000000 : colors1[(x + blur) * size + y];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors2[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-
-			for (x = 0; x < size; ++x)
-				for (y = 0; y < size; ++y)
-				{
-					a = r = g = b = 0;
-
-					for (blur = -blurSize; blur < blurSize; blur++)
-					{
-						color = (y + blur) < 0 || (y + blur) >= size ? 0x00_000000 : colors2[x * size + y + blur];
-						a += Color.alpha(color);
-						r += Color.red(color);
-						g += Color.green(color);
-						b += Color.blue(color);
-					}
-
-					colors1[x * size + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
-				}
-
-			texture4.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-			texture4.bind(4);
+				blur(size, size, (int) (size * preferences.getFloat("blurStrength", 0.1F)), colors1, colors2, null);
+				
+				texture4.init(Bitmap.createBitmap(colors1, size, size, Bitmap.Config.ARGB_8888), GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				texture4.bind(4);
+			}
 			
 			program_circles.use();
 			GLES20.glUniform1i(program_circles.getUniform("u_Texture1"), 1);
@@ -375,13 +314,43 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		}
 	}
 	
-	public static int fromARGB(int alpha, int red, int green, int blue)
+	public void blur(int width, int height, int blurSize, int[] colors1, int[] colors2, Bitmap bitmap)
 	{
-		alpha = (alpha << 24) & 0xFF000000;
-		red = (red << 16) & 0x00FF0000;
-		green = (green << 8) & 0x0000FF00;
-		blue = blue & 0x000000FF;
-		return alpha | red | blue | green;
+		int x, y, blur, color, r, g, b, a;
+		
+		for (x = 0; x < width; ++x)
+			for (y = 0; y < height; ++y)
+			{
+				a = r = g = b = 0;
+
+				for (blur = -blurSize; blur < blurSize; blur++)
+				{
+					color = (x + blur) < 0 || (x + blur) >= width ? 0x00_000000 : bitmap != null ? bitmap.getPixel(x + blur, y) : colors1[(x + blur) * height + y];
+					a += Color.alpha(color);
+					r += Color.red(color);
+					g += Color.green(color);
+					b += Color.blue(color);
+				}
+
+				colors2[x * height + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
+			}
+
+		for (x = 0; x < width; ++x)
+			for (y = 0; y < height; ++y)
+			{
+				a = r = g = b = 0;
+
+				for (blur = -blurSize; blur < blurSize; blur++)
+				{
+					color = (y + blur) < 0 || (y + blur) >= height ? 0x00_000000 : colors2[x * height + y + blur];
+					a += Color.alpha(color);
+					r += Color.red(color);
+					g += Color.green(color);
+					b += Color.blue(color);
+				}
+
+				colors1[x * height + y] = fromARGB(a / blurSize / 2, r / blurSize / 2, g / blurSize / 2, b / blurSize / 2);
+			}
 	}
 	
 	public void updateCircles()
@@ -390,6 +359,20 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		for (Circle circle : circles)
 			circle.buffer(vertices_circle);
+	}
+	
+	public void updateVignette()
+	{
+		if (program_vignette.initialized())
+		{
+			program_vignette.use();
+			
+			uniformColor(program_vignette.getUniform("u_Color"), "colorVignette", "#000000", 1);
+			GLES20.glUniform1f(program_vignette.getUniform("u_Strength"), preferences.getFloat("vignetteStrength", 0.8F));
+			GLES20.glUniform1f(program_vignette.getUniform("u_Radius"), preferences.getFloat("vignetteRadius", 0.1F));
+			
+			updateVignette = false;
+		}
 	}
 	
 	@Override
@@ -422,9 +405,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 		while (accumulator >= fixedDelta)
 		{
-			for (Circle circle : circles)
-				circle.update(time, fixedDelta);
-
+			for (int i = 0; circles != null && i < circles.length; ++i)
+			{
+				if (circles[i] == null)
+					circles[i] = new Circle(this);
+				
+				circles[i].update(time, fixedDelta);
+			}
+				
 			time += fixedDelta;
 			accumulator -= fixedDelta;
 		}
@@ -482,7 +470,19 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			updateColors = false;
 		}
 		
-		shape_background.render();
+		shape_fullscreen.render();
+		
+		if (preferences.getBoolean("vignette", false))
+		{
+			program_vignette.use();
+
+			GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+
+			if (updateVignette)
+				updateVignette();
+
+			shape_fullscreen.render();
+		}
 	}
 	
 	float lastXOffset, lastYOffset;
@@ -495,8 +495,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				if (circles[i] == null)
 					circles[i] = new Circle(this);
 
-				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F);
-				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F);
+				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
+				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
 			}
 		
 		lastXOffset = xOffset;
@@ -524,8 +524,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
 					
-				circles[i].velX += Math.signum(deltaX) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F);
-				circles[i].velY += Math.signum(deltaY) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F);
+				circles[i].velX += Math.signum(deltaX) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInvert", false) ? -1 : 1);
+				circles[i].velY += Math.signum(deltaY) * distance / circles[i].size * 0.1F * preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInvert", false) ? -1 : 1);
 			}
 		}
 	}
@@ -565,8 +565,13 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				circles[i].setTarget();
 			}
 			
-		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("sizeMax"))
+		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("sizeMax")
+			|| key.equals("circleTexture") || key.equals("circleTextureFile")
+			|| key.equals("ringTexture") || key.equals("ringTextureFile"))
 			updateTextures = true;
+			
+		else if (key.equals("colorVignette") || key.equals("vignetteStrength") || key.equals("vignetteRadius"))
+			updateVignette = true;
 			
 		else if (key.equals("count"))
 			updateCircleShape = true;
@@ -580,4 +585,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		int color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(context).getString(key, def));
 		GLES20.glUniform4f(name, Color.red(color) / 255F, Color.green(color) / 255F, Color.blue(color) / 255F, alpha);
 	}
+	
+	public static int fromARGB(int alpha, int red, int green, int blue)
+	{
+		alpha = (alpha << 24) & 0xFF000000;
+		red = (red << 16) & 0x00FF0000;
+		green = (green << 8) & 0x0000FF00;
+		blue = blue & 0x000000FF;
+		return alpha | red | blue | green;
+	}
+	
 }
