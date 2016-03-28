@@ -1,14 +1,18 @@
 package com.taraxippus.cyrcle;
 
-import android.app.*;
-import android.graphics.*;
-import android.opengl.*;
-import android.os.*;
-import android.util.*;
-import android.view.*;
-import android.widget.*;
-import com.taraxippus.cyrcle.gl.*;
-import android.widget.FrameLayout.*;
+import android.app.Activity;
+import android.content.res.Resources;
+import android.graphics.Point;
+import android.opengl.GLSurfaceView;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Display;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import com.taraxippus.cyrcle.gl.CyrcleRenderer;
+import android.graphics.drawable.ColorDrawable;
 
 public class WallpaperPreferenceActivity extends Activity
 {
@@ -49,5 +53,6 @@ public class WallpaperPreferenceActivity extends Activity
 		});
 		
 		((FrameLayout) findViewById(R.id.layout_preview)).addView(v, small);
+		
 	}
 }
