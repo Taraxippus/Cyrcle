@@ -69,7 +69,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				public boolean onPreferenceClick(Preference preference)
 				{
 					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/");
+					i.setType("image/*");
 
 					startActivityForResult(i, 0);
 					return true;
@@ -83,7 +83,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				public boolean onPreferenceClick(Preference preference)
 				{
 					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/");
+					i.setType("image/*");
 
 					startActivityForResult(i, 1);
 					return true;
