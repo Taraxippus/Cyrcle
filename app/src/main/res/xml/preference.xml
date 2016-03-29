@@ -3,7 +3,7 @@
 	
 	<Preference
 		android:title=""
-		android:summary="Tap preview to enlarge. Tap again to return to the normal layout.\nThe wallpaper might take a while to load, depending on resolution of the screen, strength of the blur and maximum size of the circles."
+		android:summary="Tap preview to enlarge. Tap again to return to the normal layout"
 	/>
 
 	<PreferenceCategory 
@@ -112,6 +112,13 @@
             android:title="Change circle alpha"
 			android:summary="Change min and max values for the alpha of the circles"
             android:key="alpha" 
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable additive blending"
+			android:summary="Overlapping circles become brighter"
+            android:key="additive" 
+			android:defaultValue="true"
 		/>
 	
 		<CheckBoxPreference
