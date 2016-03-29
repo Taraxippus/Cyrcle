@@ -141,6 +141,7 @@
 			android:summary="Use a custom texture for the rings. (You can use this as a variant, it doesn't have to be related to rings)"
             android:key="ringTexture" 
 			android:defaultValue="false"
+			android:dependency="rings"
 		/>
 
 		<Preference

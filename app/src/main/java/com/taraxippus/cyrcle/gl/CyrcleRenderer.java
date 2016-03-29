@@ -572,6 +572,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences p1, String key)
 	{
+		if (key.equals("sizeMax"))
+			updateTextures = true;
+			
 		if (key.equals("colorBackground1") || key.equals("colorBackground2"))
 			updateColors = true;
 			
@@ -604,7 +607,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				circles[i].setTarget();
 			}
 			
-		else if (key.equals("blurStrength") || key.equals("ringWidth") || key.equals("sizeMax")
+		else if (key.equals("blurStrength") || key.equals("ringWidth")
 			|| key.equals("circleTexture") || key.equals("circleTextureFile")
 			|| key.equals("ringTexture") || key.equals("ringTextureFile"))
 			updateTextures = true;
