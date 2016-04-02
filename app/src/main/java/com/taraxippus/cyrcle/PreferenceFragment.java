@@ -11,6 +11,7 @@ import android.view.*;
 import android.view.inputmethod.*;
 import android.widget.*;
 import java.io.*;
+import android.transition.TransitionInflater;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
 {
@@ -26,8 +27,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
         addPreferencesFromResource(R.xml.preference);
 		
-		Preference setWallpaper = findPreference("setWallpaper");
-		setWallpaper.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+		findPreference("setWallpaper").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
 			{
 				@Override
 				public boolean onPreferenceClick(Preference preference)
@@ -49,154 +49,84 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				}
 			});
 
-		Preference crash = findPreference("crash");
+		chooseValue(this, "fps", "max FPS", " fps", 5, 60, 1, 45);
+
+		findPreference("preferenceCircles").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+		{
+				@Override
+				public boolean onPreferenceClick(Preference p1)
+				{
+					getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceCircles())
+						.addToBackStack(null).commit();
+					
+					return true;
+				}
+		});
 		
-		if (crash != null)
-			crash.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+		findPreference("preferenceAnimation").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override
-				public boolean onPreferenceClick(Preference preference)
+				public boolean onPreferenceClick(Preference p1)
 				{
+					getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceAnimation())
+						.addToBackStack(null).commit();
 
-					throw new RuntimeException("Debug crash");
+					return true;
 				}
 			});
-
-		Preference filePicker = findPreference("pickCircleTexture");
-		filePicker.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+		
+		findPreference("preferenceBackground").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override
-				public boolean onPreferenceClick(Preference preference)
+				public boolean onPreferenceClick(Preference p1)
 				{
-					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/*");
+					getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceBackground())
+						.addToBackStack(null).commit();
 
-					startActivityForResult(i, 0);
 					return true;
 				}
 			});
 			
-		Preference filePicker2 = findPreference("pickRingTexture");
-		filePicker2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+		findPreference("preferenceInteractivity").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override
-				public boolean onPreferenceClick(Preference preference)
+				public boolean onPreferenceClick(Preference p1)
 				{
-					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/*");
+					getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceInteractivity())
+						.addToBackStack(null).commit();
 
-					startActivityForResult(i, 1);
 					return true;
 				}
 			});
-			
-		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
-
-		chooseValue("count", "Amount", "", 1, 1000, 1, 10);
-		chooseMinMax("size", 0, 1, 100, 0.25F, 0.75F);
-		chooseValue("blurStrength", "blur strength", "", 0.005F, 0.25F, 1000, 0.1F);
-		chooseValue("blurPercentage", "blur percentage", "%", 0, 100, 1, 45);
-		chooseValue("ringPercentage", "ring percentage", "%", 0, 100, 1, 45);
-		chooseValue("ringWidth", "ring width", "", 0.05F, 0.75F, 200, 0.1F);
-		chooseColor("colorCircle1", "#ffff00");
-		chooseColor("colorCircle2", "#ffcc00");
-		chooseMinMax("alpha", 0, 1, 100, 0.25F, 0.75F);
-
-		chooseColor("colorBackground1", "#ff8800");
-		chooseColor("colorBackground2", "#ff4400");
-		chooseValue("vignetteStrength", "strength", "", 0, 1, 100, 0.8F);
-		chooseValue("vignetteRadius", "radius", "", 0, 1, 100, 0.1F);
-		chooseColor("colorVignette", "#000000");
-		
-		chooseMinMax("lifeTime", 2, 120, 1, 30F, 60F);
-		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
-		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
-		chooseMinMax("directionX", -1, 1, 100, 0.25F, 0.75F);
-		chooseMinMax("directionY", -1, 1, 100, 0.25F, 0.75F);
-		
-		chooseValue("touchSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
-		chooseValue("swipeSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
     }
 	
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) 
+	public static void chooseColor(final android.preference.PreferenceFragment f, final String sharedPreference, final String def)
 	{
-		switch (requestCode)
+		final Preference p = f.findPreference(sharedPreference);
+
+		if (p == null)
 		{
-			case 0:		
-			case 1:
-				if (resultCode != Activity.RESULT_OK)
-					break;
-
-				Uri content_describer = data.getData();
-
-				InputStream in = null;
-				OutputStream out = null; 
-
-				try 
-				{
-					in = getActivity().getContentResolver().openInputStream(content_describer);
-					out = new FileOutputStream(getActivity().getFilesDir().getPath() + (requestCode == 0 ? "circleTextureFile" : "ringTextureFile"));
-
-					byte[] buffer = new byte[1024];
-					int len;
-					while ((len = in.read(buffer)) != -1) 
-					{
-						out.write(buffer, 0, len);
-					}
-
-					PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(requestCode == 0 ? "circleTextureFile" : "ringTextureFile", content_describer.getPath()).commit();
-				} 
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				} 
-				finally 
-				{
-					try
-					{
-						if (in != null)
-							in.close();
-						if (out != null)
-							out.close();
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
-
-				}
-
-				return;
-			default:
-				break;
+			System.err.println("Couldn't find preference: " + sharedPreference);
+			return;
 		}
-
-		super.onActivityResult(requestCode, resultCode, data);
-	}
-	
-	
-	public void chooseColor(final String sharedPreference, final String def)
-	{
-		final Preference p = findPreference(sharedPreference);
-
+		
 		try
 		{
-			Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
+			Color.parseColor(PreferenceManager.getDefaultSharedPreferences(f.getContext()).getString(sharedPreference, def));
 		}
 		catch (Exception e)
 		{
-			PreferenceManager.getDefaultSharedPreferences(getContext()).edit().putString(sharedPreference, def).commit();
+			PreferenceManager.getDefaultSharedPreferences(f.getContext()).edit().putString(sharedPreference, def).commit();
 		}
 
-		int colorInt = 0xFF000000 | Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
-		p.setIcon(getIcon(colorInt));
+		int colorInt = 0xFF000000 | Color.parseColor(PreferenceManager.getDefaultSharedPreferences(f.getContext()).getString(sharedPreference, def));
+		p.setIcon(getIcon(f, colorInt));
 		
 		if (sharedPreference.equals("colorBackground1"))
-			getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
+			f.getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
 
 		else if (sharedPreference.equals("colorBackground2") && Build.VERSION.SDK_INT >= 21)
-			getActivity().getWindow().setStatusBarColor(colorInt);
+			f.getActivity().getWindow().setStatusBarColor(colorInt);
 		
 		
 		p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
@@ -204,12 +134,12 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				@Override
 				public boolean onPreferenceClick(Preference p1)
 				{
-					int colorInt = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
+					int colorInt = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(f.getContext()).getString(sharedPreference, def));
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(f.getContext()).create();
 					alertDialog.setTitle("Choose color");
 					
-					final View v = getActivity().getLayoutInflater().inflate(R.layout.color, null);
+					final View v = f.getActivity().getLayoutInflater().inflate(R.layout.color, null);
 					alertDialog.setView(v);
 					
 					final View color = v.findViewById(R.id.color);
@@ -277,14 +207,14 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 								int colorInt = fromRGB(red.getProgress(), green.getProgress(), blue.getProgress());
 								hex.setText(Integer.toHexString(colorInt).substring(2).toUpperCase());
 
-								PreferenceManager.getDefaultSharedPreferences(getContext()).edit().putString(sharedPreference, "#" + hex.getText().toString()).commit();
-								p.setIcon(getIcon(0xFF000000 | colorInt));
+								PreferenceManager.getDefaultSharedPreferences(f.getContext()).edit().putString(sharedPreference, "#" + hex.getText().toString()).commit();
+								p.setIcon(getIcon(f, 0xFF000000 | colorInt));
 
 								if (sharedPreference.equals("colorBackground1"))
-									getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
+									f.getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
 								
 								else if (sharedPreference.equals("colorBackground2") && Build.VERSION.SDK_INT >= 21)
-									getActivity().getWindow().setStatusBarColor(colorInt);
+									f.getActivity().getWindow().setStatusBarColor(colorInt);
 									
 								alertDialog.dismiss();
 							}
@@ -325,9 +255,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 			});
 	}
 
-	public Drawable getIcon(int color)
+	public static Drawable getIcon(final android.preference.PreferenceFragment f, int color)
 	{
-		Drawable circle = getActivity().getDrawable(R.drawable.circle);
+		Drawable circle = f.getActivity().getDrawable(R.drawable.circle);
 		circle.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
 		return circle;
 	}
@@ -340,11 +270,17 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 		return 0xFF000000 | red | blue | green;
 	}
 
-
-	public void chooseMinMax(final String key, final float min, final float max, final int scale, final float defMin, final float defMax)
+	public static void chooseMinMax(final android.preference.PreferenceFragment f, final String key, final float min, final float max, final int scale, final float defMin, final float defMax)
 	{
-		final Preference p = findPreference(key);
-		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		final Preference p = f.findPreference(key);
+		
+		if (p == null)
+		{
+			System.err.println("Couldn't find preference: " + key);
+			return;
+		}
+		
+		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(f.getContext());
 
 		final String summary = p.getSummary().toString();
 
@@ -360,10 +296,10 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					final float lastMin = preferences.getFloat(key + "Min", defMin);
 					final float lastMax = preferences.getFloat(key + "Max", defMax);
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(f.getContext()).create();
 					alertDialog.setTitle("Change min and max");
 
-					final View v = getActivity().getLayoutInflater().inflate(R.layout.minmax, null);
+					final View v = f.getActivity().getLayoutInflater().inflate(R.layout.minmax, null);
 					alertDialog.setView(v);
 
 					final SeekBar slider_min = (SeekBar) v.findViewById(R.id.slider_min);
@@ -482,10 +418,17 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 			});
 	}
 
-	public void chooseValue(final String key, final String name, final String unit, final float min, final float max, final int scale, final float def)
+	public static void chooseValue(final android.preference.PreferenceFragment f, final String key, final String name, final String unit, final float min, final float max, final int scale, final float def)
 	{
-		final Preference p = findPreference(key);
-		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		final Preference p = f.findPreference(key);
+		
+		if (p == null)
+		{
+			System.err.println("Couldn't find preference: " + key);
+			return;
+		}
+		
+		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(f.getContext());
 
 		final String summary = p.getSummary().toString();
 
@@ -499,10 +442,10 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				{
 					final float last = preferences.getFloat(key, def);
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(f.getContext()).create();
 					alertDialog.setTitle("Change " + name);
 
-					final View v = getActivity().getLayoutInflater().inflate(R.layout.slider, null);
+					final View v = f.getActivity().getLayoutInflater().inflate(R.layout.slider, null);
 					alertDialog.setView(v);
 
 					final SeekBar slider = (SeekBar) v.findViewById(R.id.slider);
@@ -574,4 +517,229 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				}
 			});
 	}
+	
+	public class PreferenceCircles extends android.preference.PreferenceFragment
+	{
+		public PreferenceCircles()
+		{
+			super();
+		}
+
+
+		@Override
+		public void onActivityResult(int requestCode, int resultCode, Intent data) 
+		{
+			switch (requestCode)
+			{
+				case 0:		
+				case 1:
+					if (resultCode != Activity.RESULT_OK)
+						break;
+
+					Uri content_describer = data.getData();
+
+					InputStream in = null;
+					OutputStream out = null; 
+
+					try 
+					{
+						in = getActivity().getContentResolver().openInputStream(content_describer);
+						out = new FileOutputStream(getActivity().getFilesDir().getPath() + (requestCode == 0 ? "circleTextureFile" : "ringTextureFile"));
+
+						byte[] buffer = new byte[1024];
+						int len;
+						while ((len = in.read(buffer)) != -1) 
+						{
+							out.write(buffer, 0, len);
+						}
+
+						PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(requestCode == 0 ? "circleTextureFile" : "ringTextureFile", content_describer.getPath()).commit();
+					} 
+					catch (Exception e)
+					{
+						e.printStackTrace();
+					} 
+					finally 
+					{
+						try
+						{
+							if (in != null)
+								in.close();
+							if (out != null)
+								out.close();
+						}
+						catch (Exception e)
+						{
+							e.printStackTrace();
+						}
+
+					}
+
+					return;
+				default:
+					break;
+			}
+
+			super.onActivityResult(requestCode, resultCode, data);
+		}
+
+		
+		@Override
+		public void onCreate(Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+			
+			addPreferencesFromResource(R.xml.preference_circles);
+			
+			findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+				{
+					@Override
+					public boolean onPreferenceClick(Preference p1)
+					{
+						getFragmentManager().popBackStack();
+						return true;
+					}
+				});
+				
+			chooseValue(this, "count", "Amount", "", 1, 1000, 1, 10);
+			chooseMinMax(this, "size", 0, 1, 100, 0.25F, 0.75F);
+			chooseValue(this, "blurStrength", "blur strength", "", 0.005F, 0.25F, 1000, 0.1F);
+			chooseValue(this, "blurPercentage", "blur percentage", "%", 0, 100, 1, 45);
+			chooseValue(this, "ringPercentage", "ring percentage", "%", 0, 100, 1, 45);
+			chooseValue(this, "ringWidth", "ring width", "", 0.05F, 0.75F, 200, 0.1F);
+			chooseColor(this, "colorCircle1", "#ffff00");
+			chooseColor(this, "colorCircle2", "#ffcc00");
+			chooseMinMax(this, "alpha", 0, 1, 100, 0.25F, 0.75F);
+			
+			findPreference("pickCircleTexture").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+				{
+					@Override
+					public boolean onPreferenceClick(Preference preference)
+					{
+						Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+						i.setType("image/*");
+
+						startActivityForResult(i, 0);
+						return true;
+					}
+				});
+
+			findPreference("pickRingTexture").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
+				{
+					@Override
+					public boolean onPreferenceClick(Preference preference)
+					{
+						Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+						i.setType("image/*");
+
+						startActivityForResult(i, 1);
+						return true;
+					}
+				});
+		}
+	}
+	
+	public class PreferenceAnimation extends android.preference.PreferenceFragment
+	{
+		public PreferenceAnimation()
+		{
+			super();
+		}
+
+		@Override
+		public void onCreate(Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+
+			addPreferencesFromResource(R.xml.preference_animation);
+
+			findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+				{
+					@Override
+					public boolean onPreferenceClick(Preference p1)
+					{
+						getFragmentManager().popBackStack();
+						return true;
+					}
+				});
+			
+			chooseMinMax(this, "speed", 0, 1, 100, 0.25F, 0.75F);
+			chooseMinMax(this, "randomness", 0, 1, 100, 0.25F, 0.75F);
+			chooseMinMax(this, "directionX", -1, 1, 100, 0.25F, 0.75F);
+			chooseMinMax(this, "directionY", -1, 1, 100, 0.25F, 0.75F);
+			
+			chooseMinMax(this, "rotationStart", -180, 180, 1, -180, 180);
+			chooseMinMax(this, "rotationSpeed", -180, 180, 1, -45, 45);
+			
+			chooseMinMax(this, "lifeTime", 2, 120, 1, 30F, 60F);
+			chooseMinMax(this, "targetAlpha", 0, 1, 100, 0.0F, 0.01F);
+			chooseColor(this, "targetColor", "#000000");
+			chooseMinMax(this, "targetSize", 0, 1, 100, 0.0F, 0.01F);
+		}
+	}
+	
+	public class PreferenceBackground extends android.preference.PreferenceFragment
+	{
+		public PreferenceBackground()
+		{
+			super();
+		}
+
+		@Override
+		public void onCreate(Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+
+			addPreferencesFromResource(R.xml.preference_background);
+			
+			findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+				{
+					@Override
+					public boolean onPreferenceClick(Preference p1)
+					{
+						getFragmentManager().popBackStack();
+						return true;
+					}
+				});
+				
+			chooseColor(this, "colorBackground1", "#ff8800");
+			chooseColor(this, "colorBackground2", "#ff4400");
+			chooseValue(this, "vignetteStrength", "strength", "", 0, 1, 100, 0.8F);
+			chooseValue(this, "vignetteRadius", "radius", "", 0, 1, 100, 0.1F);
+			chooseColor(this, "colorVignette", "#000000");
+			chooseValue(this, "vignetteBlurStrength", "strength", "", 0, 1, 100, 0.5F);
+			chooseValue(this, "vignetteBlurRadius", "radius", "", 0, 1, 100, 0.5F);
+			
+		}
+	}
+	
+	public class PreferenceInteractivity extends android.preference.PreferenceFragment
+	{
+		public PreferenceInteractivity()
+		{
+			super();
+		}
+
+		@Override
+		public void onCreate(Bundle savedInstanceState)
+		{
+			super.onCreate(savedInstanceState);
+
+			addPreferencesFromResource(R.xml.preference_interactivity);
+
+			findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+				{
+					@Override
+					public boolean onPreferenceClick(Preference p1)
+					{
+						getFragmentManager().popBackStack();
+						return true;
+					}
+				});
+				
+			chooseValue(this, "touchSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
+			chooseValue(this, "swipeSensitivity", "sensitivity", "", 0, 1, 100, 0.5F);
+		}
+	}
+	
 }

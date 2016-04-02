@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<Preference
+		android:title="Back"
+		android:key="back" 
+		android:summary="Return to the main preference screen"
+	/>
+
+	<PreferenceCategory 
+		android:title="Touch">
+
+		<CheckBoxPreference
+            android:title="Enable touch input"
+			android:summary="Enable touch interactivity"
+            android:key="touch" 
+			android:defaultValue="true"
+		/>
+
+		<CheckBoxPreference
+            android:title="Invert touch animation"
+			android:summary="Invert the direction of the touch animation"
+            android:key="touchInvert" 
+			android:defaultValue="false"
+			android:dependency="touch"
+		/>
+
+		<Preference
+            android:title="Change touch sensitivity"
+			android:summary="Change how sensitive the circles react to a touch"
+            android:key="touchSensitivity" 
+			android:dependency="touch"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Swipe">
+			
+		<CheckBoxPreference
+            android:title="Enable swipe"
+			android:summary="Enable swipe interactivity"
+            android:key="swipe" 
+			android:defaultValue="true"
+		/>
+
+		<CheckBoxPreference
+            android:title="Invert swipe animation"
+			android:summary="Invert the direction of the swipe animation"
+            android:key="swipeInvert" 
+			android:defaultValue="false"
+			android:dependency="swipe"
+		/>
+
+		<Preference
+            android:title="Change swipe sensitivity"
+			android:summary="Change how sensitive the circles react to a swipe"
+            android:key="swipeSensitivity" 
+			android:dependency="swipe"
+		/>
+
+	</PreferenceCategory>
+
+</PreferenceScreen>

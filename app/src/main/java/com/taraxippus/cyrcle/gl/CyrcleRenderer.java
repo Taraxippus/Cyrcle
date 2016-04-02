@@ -27,7 +27,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public final Program program_background = new Program();
 	public final Program program_circles = new Program();
-	public final Program program_vignette = new Program();
+	public final Program program_post = new Program();
 	
 	public final Program program_circle_texture = new Program();
 	public final Program program_ring_texture = new Program();
@@ -35,12 +35,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public final Program program_blur_horizontal = new Program();
 	
 	public final Texture texture1 = new Texture();
-	public final Texture texture3 = new Texture();
+	public final Texture texture4 = new Texture();
 	
 	public Framebuffer textureBuffer1 = new Framebuffer();
 	public Framebuffer textureBuffer2 = new Framebuffer();
 	public Framebuffer textureBuffer3 = new Framebuffer();
 	public Framebuffer textureBuffer4 = new Framebuffer();
+	public Framebuffer textureBuffer5 = new Framebuffer();
+	public Framebuffer textureBuffer6 = new Framebuffer();
 	public Framebuffer textureBufferTMP = new Framebuffer();
 	
 	final float[] matrix_view = new float[16];
@@ -53,7 +55,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	FloatBuffer vertices_circle;
 	final int[] ibo_circle = new int[1];
 	
-	private boolean updateColors, updateCircleShape, updateTextures, updateVignette;
+	private boolean updateColors, updateCircleShape, updateTextures, updateVignette, updateVignetteBlur, updateCircleProgram;
 	
 	private long lastTime;
 	private float delta;
@@ -91,8 +93,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		GLES20.glEnable(GLES20.GL_BLEND);
 
 		program_background.init(context, R.raw.vertex_fullscreen, R.raw.fragment_background, "a_Position");
-		program_circles.init(context, R.raw.vertex_circle, R.raw.fragment_circle, "a_Position", "a_Color", "a_UV");
-		program_vignette.init(context, R.raw.vertex_fullscreen, R.raw.fragment_vignette, "a_Position");
+		program_post.init(context, R.raw.vertex_fullscreen, R.raw.fragment_vignette, "a_Position");
 		
 		program_circle_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_circle_texture, "a_Position");
 		program_ring_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_ring_texture, "a_Position");
@@ -105,17 +106,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		program_blur_vertical.use();
 		GLES20.glUniform1i(program_blur_vertical.getUniform("u_Texture"), 0);
 		
-		program_circles.use();
-		GLES20.glUniform1i(program_circles.getUniform("u_Texture1"), 1);
-		GLES20.glUniform1i(program_circles.getUniform("u_Texture2"), 2);
-		GLES20.glUniform1i(program_circles.getUniform("u_Texture3"), 3);
-		GLES20.glUniform1i(program_circles.getUniform("u_Texture4"), 4);
-		
 		shape_fullscreen.init(GLES20.GL_TRIANGLE_STRIP, new float[] {-1, -1,  -1, 1,  1, -1,  1, 1}, 4, 2);
 		
 		updateCircleShape = true;
 		updateColors = true;
 		updateTextures = true;
+		updateCircleProgram = true;
 		updateVignette = true;
 		
 		Matrix.setLookAtM(matrix_view, 0, 0, 0F, 1F, 0, 0, 0, 0, 1, 0);
@@ -149,7 +145,6 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		float ratio = (float) width / height;
 		Matrix.orthoM(matrix_projection, 0, -ratio, ratio, -1, 1, 0.5F, 1.5F);		
-		
 		updateMVP();
 		
 		if (lastWidth == width && lastHeight == height && preferences.getBoolean("animateChange", true) || width == lastHeight && height == lastWidth && preferences.getBoolean("animateRotate", true))
@@ -163,6 +158,13 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				circles[i].velY += (circles[i].targetY - circles[i].posY) * 2;
 			}
 		
+		if (program_circles.initialized() && preferences.getBoolean("vignetteBlur", false))
+		{
+			program_circles.use();
+			GLES20.glUniform2f(program_circles.getUniform("u_InvResolution"), 1F / width, 1F / height);
+		}
+		
+			
 		lastTime = 0;
 		lastWidth = width;
 		lastHeight = height;
@@ -223,7 +225,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public void updateTextures()
 	{
-		if (program_circles.initialized() && height > 0)
+		if (height > 0)
 		{
 			int size, blurSize;
 			
@@ -251,27 +253,20 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				int width = bitmap.getWidth();
 				int height = bitmap.getHeight();
 				
+				textureBuffer2.init(false, width, height);
+				textureBuffer3.init(false, width, height);
+				textureBufferTMP.init(false, width, height);
+				
 				texture1.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
 				texture1.bind(1);
 				
-				textureBuffer2.init(false, width, height);
-				textureBufferTMP.init(false, width, height);
-				
-				textureBufferTMP.bind(true);
-				program_blur_horizontal.use();
 				texture1.bind(0);
-				GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
-				textureBuffer2.bind(true);
-				program_blur_vertical.use();
-				textureBufferTMP.bindTexture(0);
-				GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
+				blur(width, height, blurSize, textureBuffer2);
 				textureBuffer2.bindTexture(2);
+				
+				textureBuffer2.bindTexture(2);
+				blur(width, height, blurSize, textureBuffer3);
+				textureBuffer3.bindTexture(3);
 			}
 			else
 			{
@@ -280,6 +275,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				textureBuffer1.init(false, size, size);
 				textureBuffer2.init(false, size, size);
+				textureBuffer3.init(false, size, size);
 				textureBufferTMP.init(false, size, size);
 				
 				textureBuffer1.bind(true);
@@ -288,21 +284,13 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				textureBuffer1.bindTexture(1);
 				
-				textureBufferTMP.bind(true);
-				program_blur_horizontal.use();
 				textureBuffer1.bindTexture(0);
-				GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-				
-				textureBuffer2.bind(true);
-				program_blur_vertical.use();
-				textureBufferTMP.bindTexture(0);
-				GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-				
+				blur(size, size, blurSize, textureBuffer2);
 				textureBuffer2.bindTexture(2);
+				
+				textureBuffer2.bindTexture(0);
+				blur(size, size, blurSize, textureBuffer3);
+				textureBuffer3.bindTexture(3);
 			}
 
 			if (preferences.getBoolean("ringTexture", false))
@@ -327,65 +315,67 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				int width = bitmap.getWidth();
 				int height = bitmap.getHeight();
 				
-				texture3.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
-				texture3.bind(3);
+				texture4.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
+				texture4.bind(3);
 				
-				textureBuffer4.init(false, width, height);
+				textureBuffer5.init(false, width, height);
+				textureBuffer6.init(false, width, height);
 				textureBufferTMP.init(false, width, height);
 
-				textureBufferTMP.bind(true);
-				program_blur_horizontal.use();
-				texture3.bind(0);
-				GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / width, 1F / height);
-				GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
-				textureBuffer4.bind(true);
-				program_blur_vertical.use();
-				textureBufferTMP.bindTexture(0);
-				GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / width, 1F / height);
-				GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
-				textureBuffer4.bindTexture(4);
+				texture4.bind(0);
+				blur(width, height, blurSize, textureBuffer5);
+				textureBuffer5.bindTexture(5);
+				
+				textureBuffer5.bindTexture(0);
+				blur(width, height, blurSize, textureBuffer6);
+				textureBuffer6.bindTexture(6);
 			}
 			else
 			{
 				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * 2);
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
-				textureBuffer3.init(false, size, size);
 				textureBuffer4.init(false, size, size);
+				textureBuffer5.init(false, size, size);
+				textureBuffer6.init(false, size, size);
 				textureBufferTMP.init(false, size, size);
 
-				textureBuffer3.bind(true);
+				textureBuffer4.bind(true);
 				program_ring_texture.use();
 				GLES20.glUniform1f(program_ring_texture.getUniform("u_RingWidth"), preferences.getFloat("ringWidth", 0.1F));
 				shape_fullscreen.render();
 
-				textureBuffer3.bindTexture(3);
-
-				textureBufferTMP.bind(true);
-				program_blur_horizontal.use();
-				textureBuffer3.bindTexture(0);
-				GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
-				textureBuffer4.bind(true);
-				program_blur_vertical.use();
-				textureBufferTMP.bindTexture(0);
-				GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / size, 1F / size);
-				GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
-				shape_fullscreen.render();
-
 				textureBuffer4.bindTexture(4);
+
+				textureBuffer4.bindTexture(0);
+				blur(size, size, blurSize, textureBuffer5);
+				textureBuffer5.bindTexture(5);
+				
+				textureBuffer5.bindTexture(0);
+				blur(size, size, blurSize, textureBuffer6);
+				textureBuffer6.bindTexture(6);
 			}
 			
 			Framebuffer.release(this, false);
 			
 			updateTextures = false;
 		}
+	}
+	
+	public void blur(int width, int height, float blurSize, Framebuffer buffer)
+	{
+		textureBufferTMP.bind(true);
+		program_blur_horizontal.use();
+		GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / width, 1F / height);
+		GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
+		shape_fullscreen.render();
+
+		buffer.bind(true);
+		program_blur_vertical.use();
+		textureBufferTMP.bindTexture(0);
+		GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / width, 1F / height);
+		GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
+		shape_fullscreen.render();
 	}
 	
 	public void updateCircles()
@@ -396,17 +386,66 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			circle.buffer(vertices_circle);
 	}
 	
+	public void updateCircleProgram()
+	{
+		if (preferences.getBoolean("vignetteBlur", false))
+		{
+			program_circles.init(context, R.raw.vertex_circle, R.raw.fragment_circle_blur, "a_Position", "a_Color", "a_UV");
+			
+			program_circles.use();
+			GLES20.glUniform2f(program_circles.getUniform("u_InvResolution"), 1F / width, 1F / height);
+			
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture1"), 1);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture2"), 2);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture3"), 3);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture4"), 4);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture5"), 5);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture6"), 6);
+			
+			GLES20.glUniformMatrix4fv(program_circles.getUniform("u_MVP"), 1, false, matrix_mvp, 0);
+			
+			updateVignetteBlur = true;
+		}
+		else
+		{
+			program_circles.init(context, R.raw.vertex_circle, R.raw.fragment_circle, "a_Position", "a_Color", "a_UV");
+			
+			program_circles.use();
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture1"), 1);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture2"), 2);
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture4"), 4);
+			
+			GLES20.glUniform1i(program_circles.getUniform("u_Texture5"), 5);
+			GLES20.glUniformMatrix4fv(program_circles.getUniform("u_MVP"), 1, false, matrix_mvp, 0);
+		}
+		
+			
+		updateCircleProgram = false;
+	}
+	
 	public void updateVignette()
 	{
-		if (program_vignette.initialized())
+		if (program_post.initialized())
 		{
-			program_vignette.use();
+			program_post.use();
 			
-			uniformColor(program_vignette.getUniform("u_Color"), "colorVignette", "#000000", 1);
-			GLES20.glUniform1f(program_vignette.getUniform("u_Strength"), preferences.getFloat("vignetteStrength", 0.8F));
-			GLES20.glUniform1f(program_vignette.getUniform("u_Radius"), preferences.getFloat("vignetteRadius", 0.1F));
+			uniformColor(program_post.getUniform("u_Color"), "colorVignette", "#000000", 1);
+			GLES20.glUniform1f(program_post.getUniform("u_Strength"), preferences.getFloat("vignetteStrength", 0.8F));
+			GLES20.glUniform1f(program_post.getUniform("u_Radius"), preferences.getFloat("vignetteRadius", 0.1F));
 			
 			updateVignette = false;
+		}
+	}
+	
+	public void updateVignetteBlur()
+	{
+		if (program_circles.initialized())
+		{
+			program_circles.use();
+			GLES20.glUniform1f(program_circles.getUniform("u_Strength"), preferences.getFloat("vignetteBlurStrength", 0.5F));
+			GLES20.glUniform1f(program_circles.getUniform("u_Radius"), preferences.getFloat("vignetteBlurRadius", 0.5F));
+			
+			updateVignetteBlur = false;
 		}
 	}
 	
@@ -474,11 +513,17 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		else 
 			GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
+		if (updateCircleProgram)
+			updateCircleProgram();
+			
+		if (updateVignetteBlur)
+			updateVignetteBlur();
+			
 		program_circles.use();
 		
 		if (updateCircleShape)
 			updateCircleShape();
-		
+			
 		updateCircles();
 		
 		vertices_circle.position(0);
@@ -513,7 +558,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		if (preferences.getBoolean("vignette", false))
 		{
-			program_vignette.use();
+			program_post.use();
 
 			GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -611,6 +656,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			|| key.equals("circleTexture") || key.equals("circleTextureFile")
 			|| key.equals("ringTexture") || key.equals("ringTextureFile"))
 			updateTextures = true;
+			
+		else if (key.equals("vignetteBlur"))
+			updateCircleProgram = true;
+			
+		else if (key.equals("vignetteBlurStrength") || key.equals("vignetteBlurRadius"))
+			updateVignetteBlur = true;
 			
 		else if (key.equals("colorVignette") || key.equals("vignetteStrength") || key.equals("vignetteRadius"))
 			updateVignette = true;

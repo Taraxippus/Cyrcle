@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<Preference
+		android:title="Back"
+		android:key="back" 
+		android:summary="Return to the main preference screen"
+	/>
+	
+	<PreferenceCategory 
+		android:title="Background">
+
+		<Preference
+			android:title="Choose top background color"
+			android:summary="Choose the color of the background at the top"
+			android:key="colorBackground1" 
+			android:defaultValue="#ff8800"
+		/>
+
+		<Preference
+			android:title="Choose bottom background color"
+			android:summary="Choose the color of the background at the bottom"
+			android:key="colorBackground2" 
+			android:defaultValue="#ff4400"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Post-processing">
+
+		<CheckBoxPreference
+			android:title="Enable vignette"
+			android:summary="Darken the corners of the screen"
+			android:key="vignette" 
+			android:defaultValue="false"
+		/>
+
+		<Preference
+			android:title="Vignette strength"
+			android:summary="Change the strength of the vignette"
+			android:key="vignetteStrength" 
+			android:dependency="vignette"
+		/>
+
+		<Preference
+			android:title="Vignette radius"
+			android:summary="Change the radius of the vignette"
+			android:key="vignetteRadius" 
+			android:dependency="vignette"
+		/>
+
+		<Preference
+			android:title="Choose vignette color"
+			android:summary="Choose the color of the vignette"
+			android:key="colorVignette" 
+			android:defaultValue="#000000"
+			android:dependency="vignette"
+		/>
+
+		<CheckBoxPreference
+			android:title="Enable blur vignette"
+			android:summary="Blur circles at the corners of the screen. The stregth of the blur depends on your blur settings for the circles"
+			android:key="vignetteBlur" 
+			android:defaultValue="false"
+		/>
+	
+		<Preference
+			android:title="Blur vignette strength"
+			android:summary="Change the strengtg of the blur vignette. Also affected by the blur strength for circles"
+			android:key="vignetteBlurStrength" 
+			android:dependency="vignetteBlur"
+		/>
+	
+		<Preference
+			android:title="Blur vignette radius"
+			android:summary="Change the radius of the blur vignette"
+			android:key="vignetteBlurRadius" 
+			android:dependency="vignetteBlur"
+		/>
+	
+	</PreferenceCategory>
+
+</PreferenceScreen>
+	

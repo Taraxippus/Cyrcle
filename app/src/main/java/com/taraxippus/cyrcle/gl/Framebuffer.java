@@ -18,9 +18,12 @@ public class Framebuffer
 
 	public void init(boolean hasDepth, int width, int height)
 	{
+		if (initialized() && this.hasDepth == hasDepth && this.width == width && this.height == height)
+			return;
+		
 		if (initialized())
 			delete();
-
+			
 		this.hasDepth = hasDepth;
 		this.width = width;
 		this.height = height;

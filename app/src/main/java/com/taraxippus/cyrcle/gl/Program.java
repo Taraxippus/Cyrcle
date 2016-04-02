@@ -135,7 +135,7 @@ public class Program
 		return null;
 	}
 	
-	HashMap<String, Integer> uniforms =  new HashMap<>();
+	final HashMap<String, Integer> uniforms =  new HashMap<>();
 	
 	public int getUniform(String name)
 	{
@@ -159,6 +159,7 @@ public class Program
 		else
 		{
 			System.err.println("Tried to use an uninitialized Program");
+			new RuntimeException().printStackTrace();
 		}
 	}
 	
@@ -171,6 +172,7 @@ public class Program
 		}
 		
 		GLES20.glDeleteProgram(program);
+		uniforms.clear();
 		
 		program = 0;
 	}

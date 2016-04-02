@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<Preference
+		android:title="Back"
+		android:key="back" 
+		android:summary="Return to the main preference screen"
+	/>
+
+	<PreferenceCategory 
+		android:title="Transitions">
+
+		<CheckBoxPreference
+            android:title="Animate rotation"
+			android:summary="Animate the wallpaper when the launcher is rotated"
+            android:key="animateRotate" 
+			android:defaultValue="true"
+		/>
+
+		<CheckBoxPreference
+            android:title="Animate app change"
+			android:summary="Play an animation when returning to the home screen from an app or turning the screen on"
+            android:key="animateChange" 
+			android:defaultValue="true"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Motion">
+		
+		<Preference
+            android:title="Change animation speed"
+			android:summary="Change min and max values for the movement speed of the circles"
+            android:key="speed" 
+		/>
+
+		<Preference
+            android:title="Change randomness"
+			android:summary="Change how random the movement of the circles should be"
+            android:key="randomness" 
+		/>
+
+		<CheckBoxPreference
+            android:title="Enable sudden movements"
+			android:summary="Circles will sometimes suddenly move faster"
+            android:key="sudden" 
+			android:defaultValue="false"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable general direction"
+			android:summary="Move all circles in one direction"
+            android:key="direction" 
+			android:defaultValue="false"
+		/>
+
+		<Preference
+            android:title="Change horizontal direction"
+			android:summary="Change min and max values for the horizontal direction"
+            android:key="directionX" 
+			android:dependency="direction"
+		/>
+
+		<Preference
+            android:title="Change vertical direction"
+			android:summary="Change min and max values for the vertical direction"
+            android:key="directionY" 
+			android:dependency="direction"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Rotation">
+		
+		<CheckBoxPreference
+            android:title="Enable rotation"
+			android:summary="Rotate circles (This will only be noticable when an custom texture is used)"
+            android:key="rotation" 
+			android:defaultValue="false"
+		/>
+	
+		<Preference
+            android:title="Change start rotation"
+			android:summary="Change min and max values for the start rotation"
+            android:key="rotationStart" 
+			android:dependency="rotation"
+		/>
+	
+		<Preference
+            android:title="Change rotation speed"
+			android:summary="Change min and max values for the rotation speed"
+            android:key="rotationSpeed" 
+			android:dependency="rotation"
+		/>
+		
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Lifecycle">
+
+		<CheckBoxPreference
+            android:title="Enable lifecycle"
+			android:summary="Old circles disappear and new circles are spawned"
+            android:key="respawn" 
+			android:defaultValue="true"
+		/>
+
+		<Preference
+            android:title="Change circle lifetime"
+			android:summary="Change min and max values for the time until a circle dies"
+            android:key="lifeTime" 
+			android:dependency="respawn"
+		/>
+
+		<CheckBoxPreference
+            android:title="Animate alpha"
+			android:summary="Circles will change the transparency over their lifetime"
+            android:key="animateAlpha" 
+			android:defaultValue="false"
+			android:dependency="respawn"
+		/>
+
+		<CheckBoxPreference
+            android:title="Enable target alpha"
+			android:summary="Circles will slowly approach the target alpha"
+            android:key="alphaTarget" 
+			android:defaultValue="false"
+			android:dependency="animateAlpha"
+		/>
+	
+		<Preference
+            android:title="Choose target alpha"
+			android:summary="Change min and max values for the target alpha"
+            android:key="targetAlpha" 
+			android:dependency="alphaTarget"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Animate color"
+			android:summary="Circles will change their color over their lifetime"
+            android:key="animateColor" 
+			android:defaultValue="false"
+			android:dependency="respawn"
+		/>
+
+		<CheckBoxPreference
+            android:title="Enable target color"
+			android:summary="Circles will slowly approach the target color"
+            android:key="colorTarget" 
+			android:defaultValue="false"
+			android:dependency="animateColor"
+		/>
+
+		<Preference
+            android:title="Choose target color"
+			android:summary="Change target color"
+            android:key="targetColor" 
+			android:defaultValue="#000000"
+			android:dependency="alphaTarget"
+		/>
+		
+		<CheckBoxPreference
+            android:title="Animate size"
+			android:summary="Circles will change their size over thei lifetime"
+            android:key="animateSize" 
+			android:defaultValue="false"
+			android:dependency="respawn"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable target size"
+			android:summary="Circles will slowly approach the target size"
+            android:key="sizeTarget" 
+			android:defaultValue="false"
+			android:dependency="animateSize"
+		/>
+
+		<Preference
+            android:title="Choose target size"
+			android:summary="Change min and max values for the target size"
+            android:key="targetSize" 
+			android:dependency="sizeTarget"
+		/>
+
+	</PreferenceCategory>
+	
+</PreferenceScreen>

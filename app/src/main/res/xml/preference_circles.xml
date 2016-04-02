@@ -1,0 +1,161 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<Preference
+		android:title="Back"
+		android:key="back" 
+		android:summary="Return to the main preference screen"
+	/>
+	
+	<PreferenceCategory 
+		android:title="General">
+
+		<Preference
+            android:title="Change amount"
+			android:summary="Change amount of circles"
+            android:key="count" 
+		/>
+
+		<Preference
+            android:title="Change circle size"
+			android:summary="Change min and max values for the size of the circles"
+            android:key="size" 
+		/>
+	
+		<CheckBoxPreference
+            android:title="Enable flickering"
+			android:summary="Circles will sometimes disappear for a short time"
+            android:key="flickering" 
+			android:defaultValue="true"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Colors">
+
+		<Preference
+            android:title="Choose first circle color"
+			android:summary="Choose the first color of the circles"
+            android:key="colorCircle1" 
+			android:defaultValue="#ffff00"
+		/>
+
+		<Preference
+            android:title="Choose second circle color"
+			android:summary="Choose the second color of the circle"
+            android:key="colorCircle2" 
+			android:defaultValue="#ffCC00"
+		/>
+
+		<Preference
+            android:title="Change circle alpha"
+			android:summary="Change min and max values for the alpha of the circles"
+            android:key="alpha" 
+		/>
+
+		<CheckBoxPreference
+            android:title="Enable additive blending"
+			android:summary="Overlapping circles become brighter"
+            android:key="additive" 
+			android:defaultValue="true"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Interpolate colors"
+			android:summary="Color circles in an inbetween color"
+            android:key="interpolate" 
+			android:defaultValue="true"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Blur">
+		
+		<CheckBoxPreference
+            android:title="Enable blur"
+			android:summary="Blur some of the circles"
+            android:key="blur" 
+			android:defaultValue="true"
+		/>
+
+		<Preference
+            android:title="Change blur amount"
+			android:summary="Change percentage of circles that should be blured"
+            android:key="blurPercentage" 
+			android:dependency="blur"
+		/>
+
+		<Preference
+            android:title="Change blur strength"
+			android:summary="Change strength of the blur"
+            android:key="blurStrength" 
+			android:dependency="blur"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Rings">
+		
+		<CheckBoxPreference
+            android:title="Enable rings"
+			android:summary="Render some circles as rings instead of as circles"
+            android:key="rings" 
+			android:defaultValue="true"
+		/>
+
+		<Preference
+            android:title="Change ring amount"
+			android:summary="Change percentage of circles that should be rings"
+            android:key="ringPercentage" 
+			android:dependency="rings"
+		/>
+
+		<Preference
+            android:title="Change ring width"
+			android:summary="Change width of the rings"
+            android:key="ringWidth" 
+			android:dependency="rings"
+		/>
+
+	</PreferenceCategory>
+		
+	<PreferenceCategory 
+		android:title="Textures">
+		
+		<CheckBoxPreference
+            android:title="Enable custom circle texture"
+			android:summary="Use a custom texture for the circles"
+            android:key="circleTexture" 
+			android:defaultValue="false"
+		/>
+
+		<Preference
+            android:title="Pick custom texture"
+			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
+            android:key="pickCircleTexture" 
+			android:defaultValue="false"
+			android:dependency="circleTexture"
+		/>
+
+		<CheckBoxPreference
+            android:title="Enable custom ring texture"
+			android:summary="Use a custom texture for the rings. (You can use this as a variant, it doesn't have to be related to rings)"
+            android:key="ringTexture" 
+			android:defaultValue="false"
+			android:dependency="rings"
+		/>
+
+		<Preference
+            android:title="Pick custom texture"
+			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
+            android:key="pickRingTexture" 
+			android:defaultValue="false"
+			android:dependency="ringTexture"
+		/>
+
+	</PreferenceCategory>
+	
+
+</PreferenceScreen>

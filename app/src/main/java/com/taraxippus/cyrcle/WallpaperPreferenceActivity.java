@@ -17,6 +17,8 @@ import android.graphics.drawable.ColorDrawable;
 public class WallpaperPreferenceActivity extends Activity
 {
 	private CyrcleRenderer renderer;
+	private GLSurfaceView glSurfaceView;
+	private ViewGroup.LayoutParams layoutSmall, layoutBig;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
@@ -25,34 +27,45 @@ public class WallpaperPreferenceActivity extends Activity
 		
 		setContentView(R.layout.main);
 		
-		final GLSurfaceView v = new GLSurfaceView(this);
-		v.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
-		v.setPreserveEGLContextOnPause(true);
-		v.setEGLContextClientVersion(2);
-		v.setEGLConfigChooser(8, 8, 8, 8, 0, 0);
-
-		v.setRenderer(renderer = new CyrcleRenderer(this));
+		getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceFragment()).commit();
+		
+		layoutSmall = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics()));
+		layoutBig = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+	
+		glSurfaceView = new GLSurfaceView(this);
+		glSurfaceView.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
+		glSurfaceView.setPreserveEGLContextOnPause(true);
+		glSurfaceView.setEGLContextClientVersion(2);
+		glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0);
+		
+		glSurfaceView.setRenderer(renderer = new CyrcleRenderer(this));
 		Display display = getWindowManager().getDefaultDisplay();
 		Point size = new Point();
 		display.getSize(size);
 		renderer.setPreview(size.y);
-		
-		final ViewGroup.LayoutParams small = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics()));
-		final ViewGroup.LayoutParams big = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-		
-		v.setOnClickListener(new View.OnClickListener()
+	
+		glSurfaceView.setOnClickListener(new View.OnClickListener()
 		{
 				@Override
 				public void onClick(View p1)
 				{
-					if (v.getLayoutParams() == small)
-						v.setLayoutParams(big);
+					if (glSurfaceView.getLayoutParams() == layoutSmall)
+						glSurfaceView.setLayoutParams(layoutBig);
 					else
-						v.setLayoutParams(small);
+						glSurfaceView.setLayoutParams(layoutSmall);
 				}
 		});
 		
-		((FrameLayout) findViewById(R.id.layout_preview)).addView(v, small);
+		((FrameLayout) findViewById(R.id.layout_preview)).addView(glSurfaceView, layoutSmall);
+	}
+
+	@Override
+	public void onBackPressed()
+	{
+		if (glSurfaceView != null && glSurfaceView.getLayoutParams() == layoutBig)
+			glSurfaceView.setLayoutParams(layoutSmall);
 		
+		else
+			super.onBackPressed();
 	}
 }

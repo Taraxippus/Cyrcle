@@ -11,8 +11,8 @@
 		android:background="#FF8800"
 		android:elevation="4dp" />
 	
-    <fragment android:name="com.taraxippus.cyrcle.PreferenceFragment"
-		android:id="@+id/fragment_preference"
+	<FrameLayout
+		android:id="@+id/layout_settings"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 	
