@@ -124,6 +124,12 @@
 	<PreferenceCategory 
 		android:title="Textures">
 		
+		<Preference
+            android:title="Change texture quality"
+			android:summary="Change quality for default textures"
+            android:key="textureQuality" 
+		/>
+		
 		<CheckBoxPreference
             android:title="Enable custom circle texture"
 			android:summary="Use a custom texture for the circles"

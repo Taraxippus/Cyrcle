@@ -27,7 +27,7 @@ public class WallpaperPreferenceActivity extends Activity
 		
 		setContentView(R.layout.main);
 		
-		getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceFragment()).commit();
+		getFragmentManager().beginTransaction().replace(R.id.layout_settings, new PreferenceMain()).commit();
 		
 		layoutSmall = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics()));
 		layoutBig = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);

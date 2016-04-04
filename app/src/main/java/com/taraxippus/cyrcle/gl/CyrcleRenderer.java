@@ -270,7 +270,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			}
 			else
 			{
-				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * 2);
+				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * preferences.getFloat("textureQuality", 1));
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
 				textureBuffer1.init(false, size, size);
@@ -332,7 +332,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			}
 			else
 			{
-				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * 2);
+				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * preferences.getFloat("textureQuality", 1));
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
 				textureBuffer4.init(false, size, size);
@@ -654,7 +654,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 		else if (key.equals("blurStrength") || key.equals("ringWidth")
 			|| key.equals("circleTexture") || key.equals("circleTextureFile")
-			|| key.equals("ringTexture") || key.equals("ringTextureFile"))
+			|| key.equals("ringTexture") || key.equals("ringTextureFile")
+			|| key.equals("textureQuality"))
 			updateTextures = true;
 			
 		else if (key.equals("vignetteBlur"))
