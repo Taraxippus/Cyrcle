@@ -79,6 +79,20 @@ public class Circle
 		
 		maxLifeTime = renderer.preferences.getFloat("lifeTimeMin", 30F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("lifeTimeMax", 60F) - renderer.preferences.getFloat("lifeTimeMin", 30F));
 		lifeTime = maxLifeTime;
+		
+		if (!renderer.preferences.getBoolean("sudden", false))
+		{
+			speed = renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
+
+			randomSpeedX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * (renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F)));
+			randomSpeedY = (renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnessMin", 0.25F))) * renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
+
+			randomScaleX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
+			randomScaleY = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
+
+			randomOffsetX = renderer.random.nextFloat() * (float) Math.PI * 2;
+			randomOffsetY = renderer.random.nextFloat() * (float) Math.PI * 2;
+		}
 	}
 	
 	public void setTarget()
@@ -90,14 +104,17 @@ public class Circle
 		
 		speed = renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
 		
-		randomSpeedX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * (renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F)));
-		randomSpeedY = (renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnessMin", 0.25F))) * renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
-	
-		randomScaleX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
-		randomScaleY = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
-		
-		randomOffsetX = renderer.random.nextFloat() * (float) Math.PI * 2;
-		randomOffsetY = renderer.random.nextFloat() * (float) Math.PI * 2;
+		if (renderer.preferences.getBoolean("sudden", false))
+		{
+			randomSpeedX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * (renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F)));
+			randomSpeedY = (renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnessMin", 0.25F))) * renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
+
+			randomScaleX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
+			randomScaleY = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * size;
+
+			randomOffsetX = renderer.random.nextFloat() * (float) Math.PI * 2;
+			randomOffsetY = renderer.random.nextFloat() * (float) Math.PI * 2;
+		}
 	}
 	
 	public void buffer(FloatBuffer vertices)

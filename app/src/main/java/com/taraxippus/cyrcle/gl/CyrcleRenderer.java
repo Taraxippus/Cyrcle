@@ -316,7 +316,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				int height = bitmap.getHeight();
 				
 				texture4.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
-				texture4.bind(3);
+				texture4.bind(4);
 				
 				textureBuffer5.init(false, width, height);
 				textureBuffer6.init(false, width, height);
