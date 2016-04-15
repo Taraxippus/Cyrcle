@@ -489,14 +489,18 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				if (preferences.getBoolean("repulsion", false))
 					for (i1 = i + 1; i1 < circles.length && circles[i1] != null; ++i1)
 					{
-						massSum = circles[i].size + circles[i1].size;
-						//distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
+						massSum = 1 / circles[i].size + 1 / circles[i1].size;
+						deltaX = circles[i].posX + circles[i].randomPosX - (circles[i1].posX + circles[i1].randomPosX);
+						deltaY = circles[i].posY + circles[i].randomPosY - (circles[i1].posY + circles[i1].randomPosY);
+
+						distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
+
+						circles[i].velX += Math.signum(deltaX) * distance * (1 / circles[i].size) / massSum * 0.1F * preferences.getFloat("repulsionStrength", 0.5F);
+						circles[i].velY += Math.signum(deltaY) * distance * (1 / circles[i].size) / massSum * 0.1F * preferences.getFloat("repulsionStrength", 0.5F);
 						
-						circles[i].velX += 0;
-						circles[i].velY += 0;
+						circles[i1].velX -= Math.signum(deltaX) * distance * (1 / circles[i1].size) / massSum * 0.1F * preferences.getFloat("repulsionStrength", 0.5F);
+						circles[i1].velY -= Math.signum(deltaY) * distance * (1 / circles[i1].size) / massSum * 0.1F * preferences.getFloat("repulsionStrength", 0.5F);
 						
-						circles[i1].velX += 0;
-						circles[i1].velY += 0;
 					}
 					
 				circles[i].update(time, fixedDelta);
