@@ -27,6 +27,10 @@ public class PreferenceAnimation extends PreferenceFragment
 				}
 			});
 
+		chooseMinMax("spawnX", -1, 1, 100, -1, 1);
+		chooseMinMax("spawnY", -1, 1, 100, -1, 1);
+		chooseValue("repulsionStrength", "strength", "", 0, 1, 100, 0.5F);
+		
 		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("directionX", -1, 1, 100, 0.25F, 0.75F);

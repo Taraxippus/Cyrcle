@@ -13,8 +13,11 @@ public class Circle
 	float randomPosX, randomPosY;
 	float targetX, targetY;
 	float velX, velY, directionVelX, directionVelY;
-	float red, green, blue, alpha, alpha1;
-	float size;
+	float rotation, rotationVel;
+	float red, green, blue, alpha;
+	float startRed, startGreen, startBlue, startAlpha;
+	float targetRed, targetGreen, targetBlue, targetAlpha;
+	float size, startSize, targetSize;
 	float speed;
 	float randomSpeedX, randomSpeedY;
 	float randomOffsetX, randomOffsetY;
@@ -31,11 +34,19 @@ public class Circle
 	
 	public void spawn()
 	{
-		posX = (renderer.random.nextFloat() * 2 - 1) * ((float) renderer.width / renderer.height);
-		posY = renderer.random.nextFloat() * 2 - 1;
+		posX = (renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * ((float) renderer.width / renderer.height);
+		posY = renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1));
 		
 		velX = 0;
 		velY = 0;
+		
+		rotation = 0;
+		rotationVel = 0;
+		if (renderer.preferences.getBoolean("rotation", false))
+		{
+			rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180)) * size;
+			rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45)) * size;
+		}
 		
 		int color1 = Color.parseColor(renderer.preferences.getString("colorCircle1", "#ffff00"));
 		int color2 = Color.parseColor(renderer.preferences.getString("colorCircle2", "#ffcc00"));
@@ -44,28 +55,69 @@ public class Circle
 		{
 			float delta = renderer.random.nextFloat();
 			
-			red = Color.red(color1) / 255F * delta + Color.red(color2) / 255F * (1 - delta);
-			green = Color.green(color1) / 255F * delta + Color.green(color2) / 255F * (1 - delta);
-			blue = Color.blue(color1) / 255F * delta + Color.blue(color2) / 255F * (1 - delta);
+			red = startRed = Color.red(color1) / 255F * delta + Color.red(color2) / 255F * (1 - delta);
+			green = startGreen = Color.green(color1) / 255F * delta + Color.green(color2) / 255F * (1 - delta);
+			blue = startBlue = Color.blue(color1) / 255F * delta + Color.blue(color2) / 255F * (1 - delta);
+			
+			if (renderer.preferences.getBoolean("colorTarget", false))
+			{
+				int color = Color.parseColor(renderer.preferences.getString("targetColor", "#000000"));
+				targetRed = Color.red(color) / 255F;
+				targetGreen = Color.green(color) / 255F;
+				targetBlue = Color.blue(color) / 255F;
+			}
+			else
+			{
+				delta = renderer.random.nextFloat();
+
+				targetRed = Color.red(color1) / 255F * delta + Color.red(color2) / 255F * (1 - delta);
+				targetGreen = startGreen = Color.green(color1) / 255F * delta + Color.green(color2) / 255F * (1 - delta);
+				targetBlue = startBlue = Color.blue(color1) / 255F * delta + Color.blue(color2) / 255F * (1 - delta);
+			}
 		}
 		else
 		{
 			int color = renderer.random.nextBoolean() ? color1 : color2;
-			red = Color.red(color) / 255F;
-			green = Color.green(color) / 255F;
-			blue = Color.blue(color) / 255F;
+			red = startRed = Color.red(color) / 255F;
+			green = startGreen = Color.green(color) / 255F;
+			blue = startBlue = Color.blue(color) / 255F;
+			
+			if (renderer.preferences.getBoolean("colorTarget", false))
+			{
+				color = Color.parseColor(renderer.preferences.getString("targetColor", "#000000"));
+				targetRed = Color.red(color) / 255F;
+				targetGreen = Color.green(color) / 255F;
+				targetBlue = Color.blue(color) / 255F;
+			}
+			else
+			{
+				color = renderer.random.nextBoolean() ? color1 : color2;
+				targetRed = Color.red(color) / 255F;
+				targetGreen = Color.green(color) / 255F;
+				targetBlue = Color.blue(color) / 255F;
+			}
 		}
 		
 		float alphaMin = renderer.preferences.getFloat("alphaMin", 0.25F);
 		float alphaMax = renderer.preferences.getFloat("alphaMax", 0.75F);
 		
-		alpha1 = alphaMin + renderer.random.nextFloat() * (alphaMax - alphaMin);
-		alpha = renderer.preferences.getBoolean("respawn", true) ? 0 : alpha1;
+		startAlpha = alphaMin + renderer.random.nextFloat() * (alphaMax - alphaMin);
+		alpha = renderer.preferences.getBoolean("respawn", true) ? 0 : startAlpha;
+		
+		if (renderer.preferences.getBoolean("alphaTarget", false))
+			targetAlpha = renderer.preferences.getFloat("targetAlphaMin", 0.0F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("targetAlphaMax", 0.02F) - renderer.preferences.getFloat("targetAlphaMin", 0.0F));
+		else
+			targetAlpha = alphaMin + renderer.random.nextFloat() * (alphaMax - alphaMin);
 		
 		float sizeMin = renderer.preferences.getFloat("sizeMin", 0.25F);
 		float sizeMax = renderer.preferences.getFloat("sizeMax", 0.75F);
 
-		size = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+		size = startSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+		
+		if (renderer.preferences.getBoolean("sizeTarget", false))
+			targetSize = MAX_SIZE * (renderer.preferences.getFloat("targetSizeMin", 0.0F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("targetSizeMax", 0.02F) - renderer.preferences.getFloat("targetSizeMin", 0.0F)));
+		else
+			targetSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
 		
 		texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 4 : 1;
 		texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
@@ -119,81 +171,156 @@ public class Circle
 	
 	public void buffer(FloatBuffer vertices)
 	{
-		vertices.put(posX + randomPosX - size);
-		vertices.put(posY + randomPosY - size);
+		if (rotation == 0)
+		{
+			vertices.put(posX + randomPosX - size);
+			vertices.put(posY + randomPosY - size);
 
-		vertices.put(red);
-		vertices.put(green);
-		vertices.put(blue);
-		vertices.put(alpha);
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
 
-		vertices.put(0);
-		vertices.put(1);
-		vertices.put(texture);
-
-
-		vertices.put(posX + randomPosX - size);
-		vertices.put(posY + randomPosY + size);
-
-		vertices.put(red);
-		vertices.put(green);
-		vertices.put(blue);
-		vertices.put(alpha);
-
-		vertices.put(0);
-		vertices.put(0);
-		vertices.put(texture);
+			vertices.put(0);
+			vertices.put(1);
+			vertices.put(texture);
 
 
-		vertices.put(posX + randomPosX + size);
-		vertices.put(posY + randomPosY - size);
+			vertices.put(posX + randomPosX - size);
+			vertices.put(posY + randomPosY + size);
 
-		vertices.put(red);
-		vertices.put(green);
-		vertices.put(blue);
-		vertices.put(alpha);
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
 
-		vertices.put(1);
-		vertices.put(1);
-		vertices.put(texture);
+			vertices.put(0);
+			vertices.put(0);
+			vertices.put(texture);
 
 
-		vertices.put(posX + randomPosX + size);
-		vertices.put(posY + randomPosY + size);
+			vertices.put(posX + randomPosX + size);
+			vertices.put(posY + randomPosY - size);
 
-		vertices.put(red);
-		vertices.put(green);
-		vertices.put(blue);
-		vertices.put(alpha);
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
 
-		vertices.put(1);
-		vertices.put(0);
-		vertices.put(texture);
+			vertices.put(1);
+			vertices.put(1);
+			vertices.put(texture);
+
+
+			vertices.put(posX + randomPosX + size);
+			vertices.put(posY + randomPosY + size);
+
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
+
+			vertices.put(1);
+			vertices.put(0);
+			vertices.put(texture);
+		}
+		else
+		{
+			vertices.put(posX + randomPosX + (float) Math.cos((rotation - 45 - 90) / 180 * Math.PI) * size);
+			vertices.put(posY + randomPosY + (float) Math.sin((rotation - 45 - 90) / 180 * Math.PI) * size);
+
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
+
+			vertices.put(0);
+			vertices.put(1);
+			vertices.put(texture);
+
+
+			vertices.put(posX + randomPosX + (float) Math.cos((rotation - 45) / 180 * Math.PI) * size);
+			vertices.put(posY + randomPosY + (float) Math.sin((rotation - 45) / 180 * Math.PI) * size);
+
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
+
+			vertices.put(0);
+			vertices.put(0);
+			vertices.put(texture);
+
+
+			vertices.put(posX + randomPosX + (float) Math.cos((rotation + 90 + 45) / 180 * Math.PI) * size);
+			vertices.put(posY + randomPosY + (float) Math.sin((rotation + 90 + 45) / 180 * Math.PI) * size);
+
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
+
+			vertices.put(1);
+			vertices.put(1);
+			vertices.put(texture);
+
+
+			vertices.put(posX + randomPosX + (float) Math.cos((rotation + 45) / 180 * Math.PI) * size);
+			vertices.put(posY + randomPosY + (float) Math.sin((rotation + 45) / 180 * Math.PI) * size);
+
+			vertices.put(red);
+			vertices.put(green);
+			vertices.put(blue);
+			vertices.put(alpha);
+
+			vertices.put(1);
+			vertices.put(0);
+			vertices.put(texture);
+		}
 	}
 	
-	private float deltaX, deltaY, length;
+	private float deltaX, deltaY, length, deltaLifeTime;
 	public void update(float time, float delta)
 	{
 		if (renderer.preferences.getBoolean("respawn", true))
 		{
 			if (lifeTime >= maxLifeTime - 1)
 			{
-				alpha = alpha1 * (maxLifeTime - lifeTime);
+				alpha = startAlpha * (maxLifeTime - lifeTime);
 				
 				if (lifeTime - delta < maxLifeTime - 1)
-					alpha = alpha1;
+					alpha = startAlpha;
 			}
 			else if (lifeTime < 1)
 			{
-				alpha = alpha1 * lifeTime;
+				alpha = startAlpha * lifeTime;
 
 				if (lifeTime <= delta)
 					spawn();
 			}
+			else
+				alpha = startAlpha;
+			
+			
+			deltaLifeTime = lifeTime / maxLifeTime;
+			if (renderer.preferences.getBoolean("animateAlhpa", false))
+			{
+				alpha *= startAlpha * deltaLifeTime + (1 - deltaLifeTime) * targetAlpha;
+			}
+			if (renderer.preferences.getBoolean("animateColor", false))
+			{
+				red = startRed * deltaLifeTime + (1 - deltaLifeTime) * targetRed;
+				green = startGreen * deltaLifeTime + (1 - deltaLifeTime) * targetGreen;
+				blue = startBlue * deltaLifeTime + (1 - deltaLifeTime) * targetBlue;
+			}
+			if (renderer.preferences.getBoolean("animateSize", false))
+			{
+				size = startSize * deltaLifeTime + (1 - deltaLifeTime) * targetSize;
+			}
 			
 			lifeTime -= delta;
 		}
-		
+	
 		deltaX = targetX - posX;
 		deltaY = targetY - posY;
 		length = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -206,6 +333,8 @@ public class Circle
 		
 		posX += velX * delta;
 		posY += velY * delta;
+		
+		rotation += rotationVel * delta;
 		
 		if (renderer.preferences.getBoolean("direction", false))
 		{
@@ -234,10 +363,10 @@ public class Circle
 			
 			if (lifeTime > 1 && lifeTime < maxLifeTime - 1 || !renderer.preferences.getBoolean("respawn", true))
 			{
-				alpha = alpha1 * ((float) Math.cos(flickeringTick / flickeringDuration * Math.PI * 2) * 0.5F + 0.5F);
+				alpha = startAlpha * ((float) Math.cos(flickeringTick / flickeringDuration * Math.PI * 2) * 0.5F + 0.5F);
 
 				if (flickeringTick <= 0)
-					alpha = alpha1;
+					alpha = startAlpha;
 			}
 		}
 		

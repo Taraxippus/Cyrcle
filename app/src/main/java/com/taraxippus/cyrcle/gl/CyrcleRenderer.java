@@ -479,11 +479,26 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 		while (accumulator >= fixedDelta)
 		{
-			for (int i = 0; circles != null && i < circles.length; ++i)
+			int i, i1;
+			float deltaX, deltaY, massSum, distance;
+			for (i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (circles[i] == null)
 					circles[i] = new Circle(this);
 				
+				if (preferences.getBoolean("repulsion", false))
+					for (i1 = i + 1; i1 < circles.length && circles[i1] != null; ++i1)
+					{
+						massSum = circles[i].size + circles[i1].size;
+						//distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
+						
+						circles[i].velX += 0;
+						circles[i].velY += 0;
+						
+						circles[i1].velX += 0;
+						circles[i1].velY += 0;
+					}
+					
 				circles[i].update(time, fixedDelta);
 			}
 				
@@ -623,7 +638,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		if (key.equals("colorBackground1") || key.equals("colorBackground2"))
 			updateColors = true;
 			
-		else if (key.equals("sizeMin") || key.equals("sizeMax")
+		else if (key.equals("spawnXMin") || key.equals("spawnXMax")
+			|| key.equals("spawnYMin") || key.equals("spawnYMax")
+			|| key.equals("sizeMin") || key.equals("sizeMax")
 			|| key.equals("alphaMin") || key.equals("alphaMax")
 			|| key.equals("colorCircle1") || key.equals("colorCircle2")
 			|| key.equals("interpolate") || key.equals("flickering") 
@@ -631,8 +648,13 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		 	|| key.equals("blur") || key.equals("blurPercentage")
 			|| key.equals("respawn") || key.equals("lifeTimeMin") || key.equals("lifeTimeMax")
 			|| key.equals("directionXMin") || key.equals("directionXMax")
-			|| key.equals("directionYMin") || key.equals("directionYMax"))
-				 
+			|| key.equals("directionYMin") || key.equals("directionYMax")
+			|| key.equals("animateColor") || key.equals("colorTarget") || key.equals("targetColor")
+			|| key.equals("animateAlpha") || key.equals("alphaTarget") || key.equals("targetAlphaMin") || key.equals("targetAlphaMax")
+			|| key.equals("animateSize") || key.equals("sizeTarget") || key.equals("targetSizeMin") || key.equals("targetSizeMax")
+			|| key.equals("rotation") || key.equals("rotationStartMin") || key.equals("rotationStartMax")
+			|| key.equals("rotationSpeedMin") || key.equals("rotationSpeedMax"))
+		
 			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (circles[i] == null)

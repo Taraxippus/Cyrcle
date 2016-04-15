@@ -27,8 +27,39 @@
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
+		android:title="Spawn">
+
+		<Preference
+            android:title="Change horizontal spawn position"
+			android:summary="Change min and max values for the spawn position"
+            android:key="spawnX" 
+		/>
+	
+		<Preference
+            android:title="Change vertical spawn position"
+			android:summary="Change min and max values for the spawn position"
+            android:key="spawnY" 
+		/>
+	
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
 		android:title="Motion">
 		
+		<CheckBoxPreference
+            android:title="Enable repulsion"
+			android:summary="Circles will move away from each other"
+            android:key="repulsion" 
+			android:defaultValue="false"
+		/>
+	
+		<Preference
+            android:title="Change repulsion strength"
+			android:summary="Change how far circles move away from each other"
+            android:key="repulsionStrength" 
+			android:dependency="repulsion"
+		/>
+	
 		<Preference
             android:title="Change animation speed"
 			android:summary="Change min and max values for the movement speed of the circles"
