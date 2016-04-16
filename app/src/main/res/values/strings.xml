@@ -2,6 +2,10 @@
 <resources>
 
     <string name="app_name">Cyrcle</string>
-    <string name="hello_world">Hello world!</string>
-
+  
+	<string-array name="shape">
+		<item>Circle</item>
+		<item>Wave</item>
+		<item>Double wave</item>
+	</string-array>
 </resources>

@@ -59,7 +59,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	private long lastTime;
 	private float delta;
-	private float fixedDelta = 1 / 60F;
+	private float fixedDelta = 1 / 45F;
 	private float accumulator;
 	private float time;
 	
@@ -120,6 +120,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		updateTextures();
 		
 		maxFPS = (int) preferences.getFloat("fps", 45);
+		fixedDelta = 1F / preferences.getFloat("ups", 45);
 		
 		lastTime = 0;
 	}
@@ -378,12 +379,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		shape_fullscreen.render();
 	}
 	
-	public void updateCircles()
+	public void updateCircles(float partial)
 	{
 		vertices_circle.position(0);
 		
 		for (Circle circle : circles)
-			circle.buffer(vertices_circle);
+			circle.buffer(vertices_circle, partial);
 	}
 	
 	public void updateCircleProgram()
@@ -543,7 +544,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		if (updateCircleShape)
 			updateCircleShape();
 			
-		updateCircles();
+		updateCircles(accumulator / fixedDelta);
 		
 		vertices_circle.position(0);
 		GLES20.glVertexAttribPointer(0, 2, GLES20.GL_FLOAT, false, 9 * 4, vertices_circle);
@@ -698,6 +699,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 		else if (key.equals("fps"))
 			maxFPS = (int) preferences.getFloat("fps", 45);
+			
+		else if (key.equals("ups"))
+			fixedDelta = 1F / preferences.getFloat("ups", 45);
+		
 	}
 	
 	public void uniformColor(int name, String key, String def, float alpha)

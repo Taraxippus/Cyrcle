@@ -9,15 +9,16 @@ public class Circle
 	
 	public final CyrcleRenderer renderer;
 	
-	float posX, posY;
-	float randomPosX, randomPosY;
+	float posX, posY, prevPosX, prevPosY;
+	float randomPosX, randomPosY, prevRandomPosX, prevRandomPosY;
 	float targetX, targetY;
 	float velX, velY, directionVelX, directionVelY;
-	float rotation, rotationVel;
+	float rotation, rotationVel, prevRotation;
 	float red, green, blue, alpha;
+	float prevRed, prevGreen, prevBlue, prevAlpha;
 	float startRed, startGreen, startBlue, startAlpha;
 	float targetRed, targetGreen, targetBlue, targetAlpha;
-	float size, startSize, targetSize;
+	float size, startSize, targetSize, prevSize;
 	float speed;
 	float randomSpeedX, randomSpeedY;
 	float randomOffsetX, randomOffsetY;
@@ -145,6 +146,17 @@ public class Circle
 			randomOffsetX = renderer.random.nextFloat() * (float) Math.PI * 2;
 			randomOffsetY = renderer.random.nextFloat() * (float) Math.PI * 2;
 		}
+		
+		prevPosX = posX;
+		prevPosY = posY;
+		prevRandomPosX = randomPosX;
+		prevRandomPosY = randomPosY;
+		prevRotation = rotation;
+		prevRed = red;
+		prevGreen = green;
+		prevBlue = blue;
+		prevAlpha = alpha;
+		prevSize = size;
 	}
 	
 	public void setTarget()
@@ -169,110 +181,110 @@ public class Circle
 		}
 	}
 	
-	public void buffer(FloatBuffer vertices)
+	public void buffer(FloatBuffer vertices, float partial)
 	{
 		if (rotation == 0)
 		{
-			vertices.put(posX + randomPosX - size);
-			vertices.put(posY + randomPosY - size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX - size * partial - (1 - partial) * prevSize);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY - size * partial - (1 - partial) * prevSize);
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
 
 			vertices.put(0);
 			vertices.put(1);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX - size);
-			vertices.put(posY + randomPosY + size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX - size * partial - (1 - partial) * prevSize);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + size * partial + (1 - partial) * prevSize);
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(0);
 			vertices.put(0);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX + size);
-			vertices.put(posY + randomPosY - size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + size * partial + (1 - partial) * prevSize);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY - size * partial - (1 - partial) * prevSize);
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(1);
 			vertices.put(1);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX + size);
-			vertices.put(posY + randomPosY + size);
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + size * partial + (1 - partial) * prevSize);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + size * partial + (1 - partial) * prevSize);
 
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(1);
 			vertices.put(0);
 			vertices.put(texture);
 		}
 		else
 		{
-			vertices.put(posX + randomPosX + (float) Math.cos((rotation - 45 - 90) / 180 * Math.PI) * size);
-			vertices.put(posY + randomPosY + (float) Math.sin((rotation - 45 - 90) / 180 * Math.PI) * size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(0);
 			vertices.put(1);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX + (float) Math.cos((rotation - 45) / 180 * Math.PI) * size);
-			vertices.put(posY + randomPosY + (float) Math.sin((rotation - 45) / 180 * Math.PI) * size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(0);
 			vertices.put(0);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX + (float) Math.cos((rotation + 90 + 45) / 180 * Math.PI) * size);
-			vertices.put(posY + randomPosY + (float) Math.sin((rotation + 90 + 45) / 180 * Math.PI) * size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(1);
 			vertices.put(1);
 			vertices.put(texture);
 
 
-			vertices.put(posX + randomPosX + (float) Math.cos((rotation + 45) / 180 * Math.PI) * size);
-			vertices.put(posY + randomPosY + (float) Math.sin((rotation + 45) / 180 * Math.PI) * size);
-
-			vertices.put(red);
-			vertices.put(green);
-			vertices.put(blue);
-			vertices.put(alpha);
-
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			
+			vertices.put(red * partial + (1 - partial) * prevRed);
+			vertices.put(green * partial + (1 - partial) * prevGreen);
+			vertices.put(blue * partial + (1 - partial) * prevBlue);
+			vertices.put(alpha * partial + (1 - partial) * prevAlpha);
+			
 			vertices.put(1);
 			vertices.put(0);
 			vertices.put(texture);
@@ -282,24 +294,35 @@ public class Circle
 	private float deltaX, deltaY, length, deltaLifeTime;
 	public void update(float time, float delta)
 	{
+		prevPosX = posX;
+		prevPosY = posY;
+		prevRandomPosX = randomPosX;
+		prevRandomPosY = randomPosY;
+		prevRotation = rotation;
+		prevRed = red;
+		prevGreen = green;
+		prevBlue = blue;
+		prevAlpha = alpha;
+		prevSize = size;
+		
 		if (renderer.preferences.getBoolean("respawn", true))
 		{
 			if (lifeTime >= maxLifeTime - 1)
 			{
-				alpha = startAlpha * (maxLifeTime - lifeTime);
+				alpha = maxLifeTime - lifeTime;
 				
 				if (lifeTime - delta < maxLifeTime - 1)
-					alpha = startAlpha;
+					alpha = 1;
 			}
 			else if (lifeTime < 1)
 			{
-				alpha = startAlpha * lifeTime;
+				alpha = lifeTime;
 
 				if (lifeTime <= delta)
 					spawn();
 			}
 			else
-				alpha = startAlpha;
+				alpha = 1;
 			
 			
 			deltaLifeTime = lifeTime / maxLifeTime;
@@ -328,8 +351,8 @@ public class Circle
 		if (length < 0.15F)
 			setTarget();
 		
-		velX = velX * 0.95F + deltaX / length / size * 0.00025F * speed;
-		velY = velY * 0.95F + deltaY / length / size * 0.00025F * speed;
+		velX = velX * (float) Math.pow(0.95F, delta * 60) + deltaX / length / size * 0.00025F * speed;
+		velY = velY * (float) Math.pow(0.95F, delta * 60) + deltaY / length / size * 0.00025F * speed;
 		
 		posX += velX * delta;
 		posY += velY * delta;
@@ -343,16 +366,28 @@ public class Circle
 		}
 		
 		if (posX + randomPosX < (float) -renderer.width / renderer.height - size)
-			posX +=  (float) renderer.width / renderer.height * 2 + size * 2;
+		{
+			posX += (float) renderer.width / renderer.height * 2 + size * 2;
+			prevPosX += (float) renderer.width / renderer.height * 2 + size * 2;
+		}
 			
 		if (posX + randomPosX > (float) renderer.width / renderer.height + size)
+		{
 			posX -=  (float) renderer.width / renderer.height * 2 + size * 2;
-		
+			prevPosX -=  (float) renderer.width / renderer.height * 2 + size * 2;
+		}
+			
 		if (posY + randomPosY < -1 - size)
+		{
 			posY += 2 + size * 2;
-		
+			prevPosY += 2 + size * 2;
+		}
+			
 		if (posY + randomPosY > 1 + size)
+		{
 			posY -= 2 + size * 2;
+			prevPosY -= 2 + size * 2;
+		}
 			
 		randomPosX = randomPosX * 0.9F + (float) Math.cos(time * randomSpeedX * 2 + randomOffsetX) * randomScaleX * 0.015F;
 		randomPosY = randomPosY * 0.9F + (float) Math.cos(time * randomSpeedY * 2 + randomOffsetY) * randomScaleY * 0.015F;

@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import com.taraxippus.cyrcle.CyrcleWallpaperService;
+import android.widget.Toast;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class PreferenceMain extends PreferenceFragment
 {
@@ -44,7 +47,8 @@ public class PreferenceMain extends PreferenceFragment
 			});
 
 		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
-
+		chooseValue("ups", "Update frequence", " ups", 5, 60, 1, 45);
+		
 		findPreference("preferenceCircles").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override

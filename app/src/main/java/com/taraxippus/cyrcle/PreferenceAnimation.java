@@ -32,6 +32,7 @@ public class PreferenceAnimation extends PreferenceFragment
 		chooseValue("repulsionStrength", "strength", "", 0, 1, 100, 0.5F);
 		
 		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
+		chooseValue("damping", "damping", "", 0, 5, 100, 0.05F);
 		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("directionX", -1, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("directionY", -1, 1, 100, 0.25F, 0.75F);

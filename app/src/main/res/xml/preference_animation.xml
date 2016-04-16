@@ -41,6 +41,31 @@
             android:key="spawnY" 
 		/>
 	
+		<CheckBoxPreference
+            android:title="Enable spawn shape"
+			android:summary="Circles will spawn in a special formation"
+            android:key="spawnShape" 
+			android:defaultValue="false"
+		/>
+	
+		<ListPreference
+            android:title="Choose a shape"
+			android:summary="Choose between different spawn shapes. Spawn position will be interpreted accordingly"
+            android:key="shape" 
+			android:entries="@array/shape"
+			android:entryValues="@array/shape"
+			android:defaultValue="Circle"
+			android:dependency="spawnShape"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Animate based on shape"
+			android:summary="Circles will move along the shape"
+            android:key="animateShape" 
+			android:defaultValue="false"
+			android:dependency="spawnShape"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
@@ -48,7 +73,7 @@
 		
 		<CheckBoxPreference
             android:title="Enable repulsion"
-			android:summary="Circles will move away from each other"
+			android:summary="Circles will move away from each other.\nExtremly performance intensiv"
             android:key="repulsion" 
 			android:defaultValue="false"
 		/>
@@ -66,6 +91,12 @@
             android:key="speed" 
 		/>
 
+		<Preference
+            android:title="Change damping"
+			android:summary="Change how fast circles will change directions. Is affected by the number of updates per second"
+            android:key="damping" 
+		/>
+	
 		<Preference
             android:title="Change randomness"
 			android:summary="Change how random the movement of the circles should be"

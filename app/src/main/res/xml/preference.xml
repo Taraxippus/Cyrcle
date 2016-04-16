@@ -21,6 +21,12 @@
 		/>
 	
 		<Preference
+            android:title="Change updates per seconds"
+			android:summary="Change update frequency, frames between updates are interpolated. Some animations are framerate dependant"
+            android:key="ups" 
+		/>
+	
+		<Preference
 			android:title="Circle preferences"
 			android:summary="Show preference for color, size, texture etc. of the circles"
 			android:key="preferenceCircles"
@@ -48,7 +54,7 @@
 	
 	<PreferenceCategory
 		android:title="About" >
-		
+	
 		<Preference
 			android:title="Cyrcle"
 			android:summary="Version 1.0\nDeveloped by me"
