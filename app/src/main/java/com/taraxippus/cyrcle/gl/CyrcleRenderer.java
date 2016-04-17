@@ -67,6 +67,11 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	private int fps;
 	private long lastFPS;
 	
+	public boolean repulsion, respawn, touch, swipe,
+	animateColor, animateAlpha, animateSize,
+	direction, flickering, sudden;
+	public float repulsionStrength;
+	
 	private final Runnable fpsRunnable = new Runnable()
 	{
 		@Override
@@ -118,6 +123,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		updateMVP();
 		updateTextures();
+		updatePreferences();
 		
 		maxFPS = (int) preferences.getFloat("fps", 45);
 		fixedDelta = 1F / preferences.getFloat("ups", 45);
@@ -487,7 +493,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				if (circles[i] == null)
 					circles[i] = new Circle(this);
 				
-				if (preferences.getBoolean("repulsion", false))
+				if (repulsion)
 					for (i1 = i + 1; i1 < circles.length && circles[i1] != null; ++i1)
 					{
 						massSum = 1 / circles[i].size + 1 / circles[i1].size;
@@ -593,7 +599,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public void onOffsetsChanged(float xOffset, float yOffset)
 	{
-		if (preferences.getBoolean("swipe", true))
+		if (swipe)
 			for (int i = 0; i < circles.length; ++i)
 			{
 				if (circles[i] == null)
@@ -609,7 +615,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public void onTap(float x, float y)
 	{
-		if (preferences.getBoolean("touch", true))
+		if (touch)
 		{
 			x = ((x / width) * 2 - 1) * ((float) width / height);
 			y = ((1 - y / height) * 2 - 1);
@@ -659,14 +665,22 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			|| key.equals("animateSize") || key.equals("sizeTarget") || key.equals("targetSizeMin") || key.equals("targetSizeMax")
 			|| key.equals("rotation") || key.equals("rotationStartMin") || key.equals("rotationStartMax")
 			|| key.equals("rotationSpeedMin") || key.equals("rotationSpeedMax"))
-		
-			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
+				updatePreferences();
+				
+				for (int i = 0; circles != null && i < circles.length; ++i)
+				{
+					if (circles[i] == null)
+						circles[i] = new Circle(this);
 
-				circles[i].spawn();
+					circles[i].spawn();
+				}
 			}
+			
+		else if (key.equals("repulsion") || key.equals("touch") || key.equals("swipe"))
+		{
+			updatePreferences();
+		}
 			
 		else if (key.equals("randomnessMin") || key.equals("randomnessMax")
 			|| key.equals("speedMin") || key.equals("speedMax"))
@@ -705,9 +719,23 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 	}
 	
+	public void updatePreferences()
+	{
+		repulsion = preferences.getBoolean("repulsion", false);
+		respawn = preferences.getBoolean("respawn", true);
+		touch = preferences.getBoolean("touch", true);
+		swipe = preferences.getBoolean("swipe", true);
+		animateColor = preferences.getBoolean("animateColor", false);
+		animateAlpha = preferences.getBoolean("animateAlpha", false);
+		animateSize = preferences.getBoolean("animateSize", false);
+		direction = preferences.getBoolean("direction", false);
+		flickering = preferences.getBoolean("flickering", true);
+		sudden = preferences.getBoolean("sudden", false);
+	}
+	
 	public void uniformColor(int name, String key, String def, float alpha)
 	{
-		int color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(context).getString(key, def));
+		int color = Color.parseColor(preferences.getString(key, def));
 		GLES20.glUniform4f(name, Color.red(color) / 255F, Color.green(color) / 255F, Color.blue(color) / 255F, alpha);
 	}
 	

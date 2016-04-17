@@ -20,13 +20,6 @@
 			android:summary="Change min and max values for the size of the circles"
             android:key="size" 
 		/>
-	
-		<CheckBoxPreference
-            android:title="Enable flickering"
-			android:summary="Circles will sometimes disappear for a short time"
-            android:key="flickering" 
-			android:defaultValue="true"
-		/>
 
 	</PreferenceCategory>
 	

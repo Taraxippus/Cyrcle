@@ -133,7 +133,7 @@ public class Circle
 		maxLifeTime = renderer.preferences.getFloat("lifeTimeMin", 30F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("lifeTimeMax", 60F) - renderer.preferences.getFloat("lifeTimeMin", 30F));
 		lifeTime = maxLifeTime;
 		
-		if (!renderer.preferences.getBoolean("sudden", false))
+		if (!renderer.sudden)
 		{
 			speed = renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
 
@@ -168,7 +168,7 @@ public class Circle
 		
 		speed = renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
 		
-		if (renderer.preferences.getBoolean("sudden", false))
+		if (renderer.sudden)
 		{
 			randomSpeedX = renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnesdMin", 0.25F)) * (renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F)));
 			randomSpeedY = (renderer.preferences.getFloat("randomnessMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("randomnessMax", 0.75F) - renderer.preferences.getFloat("randomnessMin", 0.25F))) * renderer.preferences.getFloat("speedMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("speedMax", 0.75F) - renderer.preferences.getFloat("speedMin", 0.25F));
@@ -305,7 +305,7 @@ public class Circle
 		prevAlpha = alpha;
 		prevSize = size;
 		
-		if (renderer.preferences.getBoolean("respawn", true))
+		if (renderer.respawn)
 		{
 			if (lifeTime >= maxLifeTime - 1)
 			{
@@ -326,17 +326,20 @@ public class Circle
 			
 			
 			deltaLifeTime = lifeTime / maxLifeTime;
-			if (renderer.preferences.getBoolean("animateAlhpa", false))
+			if (renderer.animateAlpha)
 			{
 				alpha *= startAlpha * deltaLifeTime + (1 - deltaLifeTime) * targetAlpha;
 			}
-			if (renderer.preferences.getBoolean("animateColor", false))
+			else
+				alpha *= startAlpha;
+				
+			if (renderer.animateColor)
 			{
 				red = startRed * deltaLifeTime + (1 - deltaLifeTime) * targetRed;
 				green = startGreen * deltaLifeTime + (1 - deltaLifeTime) * targetGreen;
 				blue = startBlue * deltaLifeTime + (1 - deltaLifeTime) * targetBlue;
 			}
-			if (renderer.preferences.getBoolean("animateSize", false))
+			if (renderer.animateSize)
 			{
 				size = startSize * deltaLifeTime + (1 - deltaLifeTime) * targetSize;
 			}
@@ -359,7 +362,7 @@ public class Circle
 		
 		rotation += rotationVel * delta;
 		
-		if (renderer.preferences.getBoolean("direction", false))
+		if (renderer.direction)
 		{
 			posX += 0.5F * directionVelX * delta;
 			posY += 0.5F * directionVelY * delta;
@@ -396,7 +399,7 @@ public class Circle
 		{
 			flickeringTick -= delta;
 			
-			if (lifeTime > 1 && lifeTime < maxLifeTime - 1 || !renderer.preferences.getBoolean("respawn", true))
+			if (lifeTime > 1 && lifeTime < maxLifeTime - 1 || !renderer.respawn)
 			{
 				alpha = startAlpha * ((float) Math.cos(flickeringTick / flickeringDuration * Math.PI * 2) * 0.5F + 0.5F);
 
@@ -405,7 +408,7 @@ public class Circle
 			}
 		}
 		
-		if (renderer.preferences.getBoolean("flickering", true))
+		if (renderer.flickering)
 		{
 			flickeringTime -= delta;
 			

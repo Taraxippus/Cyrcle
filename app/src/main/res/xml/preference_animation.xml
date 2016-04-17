@@ -66,6 +66,13 @@
 			android:dependency="spawnShape"
 		/>
 	
+		<CheckBoxPreference
+            android:title="Enable flickering"
+			android:summary="Circles will sometimes disappear for a short time"
+            android:key="flickering" 
+			android:defaultValue="true"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
