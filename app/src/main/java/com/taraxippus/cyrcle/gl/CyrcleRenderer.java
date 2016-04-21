@@ -55,13 +55,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	FloatBuffer vertices_circle;
 	final int[] ibo_circle = new int[1];
 	
-	private boolean updateColors, updateCircleShape, updateTextures, updateVignette, updateVignetteBlur, updateCircleProgram;
+	private boolean updateColors, updateCircleShape, updateTextures,
+	updateVignette, updateVignetteBlur, updateCircleProgram;
 	
 	private long lastTime;
 	private float delta;
 	private float fixedDelta = 1 / 45F;
 	private float accumulator;
-	private float time;
+	public float time;
 	
 	private int maxFPS = 45;
 	private int fps;
@@ -69,8 +70,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public boolean repulsion, respawn, touch, swipe,
 	animateColor, animateAlpha, animateSize,
-	direction, flickering, sudden;
+	direction, flickering, sudden,
+	spawnShape, animateShape;
 	public float repulsionStrength;
+	public int shape;
 	
 	private final Runnable fpsRunnable = new Runnable()
 	{
@@ -124,9 +127,6 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		updateMVP();
 		updateTextures();
 		updatePreferences();
-		
-		maxFPS = (int) preferences.getFloat("fps", 45);
-		fixedDelta = 1F / preferences.getFloat("ups", 45);
 		
 		lastTime = 0;
 	}
@@ -640,9 +640,47 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		}
 	}
 	
+	public void respawn()
+	{
+		for (int i = 0; circles != null && i < circles.length; ++i)
+		{
+			if (circles[i] == null)
+				circles[i] = new Circle(this);
+
+			circles[i].spawn();
+		}
+	}
+	
+	public void resetTarget()
+	{
+		for (int i = 0; circles != null && i < circles.length; ++i)
+		{
+			if (circles[i] == null)
+				circles[i] = new Circle(this);
+
+			circles[i].setTarget();
+		}
+	}
+	
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences p1, String key)
 	{
+		switch (key)
+		{
+			case "spawnShape":
+				spawnShape = preferences.getBoolean("spawnShape", false);
+				respawn();
+				break;
+			case "shape":
+				shape = Arrays.binarySearch(context.getResources().getStringArray(R.array.shape), preferences.getString("shape", "Circle"));
+				respawn();
+				break;
+			case "animateShape":
+				animateShape = preferences.getBoolean("animateShape", false);
+				respawn();
+				break;
+		}
+		
 		if (key.equals("sizeMax"))
 			updateTextures = true;
 			
@@ -664,34 +702,27 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			|| key.equals("animateAlpha") || key.equals("alphaTarget") || key.equals("targetAlphaMin") || key.equals("targetAlphaMax")
 			|| key.equals("animateSize") || key.equals("sizeTarget") || key.equals("targetSizeMin") || key.equals("targetSizeMax")
 			|| key.equals("rotation") || key.equals("rotationStartMin") || key.equals("rotationStartMax")
-			|| key.equals("rotationSpeedMin") || key.equals("rotationSpeedMax"))
+			|| key.equals("rotationSpeedMin") || key.equals("rotationSpeedMax") || key.equals("direction"))
 			{
 				updatePreferences();
 				
-				for (int i = 0; circles != null && i < circles.length; ++i)
-				{
-					if (circles[i] == null)
-						circles[i] = new Circle(this);
-
-					circles[i].spawn();
-				}
+				respawn();
 			}
 			
-		else if (key.equals("repulsion") || key.equals("touch") || key.equals("swipe"))
-		{
-			updatePreferences();
-		}
+		else if (key.equals("repulsion"))
+			repulsion = preferences.getBoolean("repulsion", false);
+			
+		else if (key.equals("touch"))
+			touch = preferences.getBoolean("touch", true);
+			
+		else if (key.equals("swipe"))
+			touch = preferences.getBoolean("swipe", true);
+		
 			
 		else if (key.equals("randomnessMin") || key.equals("randomnessMax")
 			|| key.equals("speedMin") || key.equals("speedMax"))
 		
-			for (int i = 0; circles != null && i < circles.length; ++i)
-			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
-
-				circles[i].setTarget();
-			}
+			resetTarget();
 			
 		else if (key.equals("blurStrength") || key.equals("ringWidth")
 			|| key.equals("circleTexture") || key.equals("circleTextureFile")
@@ -731,6 +762,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		direction = preferences.getBoolean("direction", false);
 		flickering = preferences.getBoolean("flickering", true);
 		sudden = preferences.getBoolean("sudden", false);
+		spawnShape = preferences.getBoolean("spawnShape", false);
+		animateShape = preferences.getBoolean("animateShape", false);
+		shape = Arrays.binarySearch(context.getResources().getStringArray(R.array.shape), preferences.getString("shape", "Circle"));
+		
+		maxFPS = (int) preferences.getFloat("fps", 45);
+		fixedDelta = 1F / preferences.getFloat("ups", 45);
 	}
 	
 	public void uniformColor(int name, String key, String def, float alpha)

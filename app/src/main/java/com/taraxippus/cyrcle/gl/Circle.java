@@ -35,8 +35,38 @@ public class Circle
 	
 	public void spawn()
 	{
-		posX = (renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * ((float) renderer.width / renderer.height);
-		posY = renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1));
+		if (renderer.spawnShape)
+		{
+			if (renderer.shape == 0)
+			{
+				float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
+				posX = renderer.preferences.getFloat("spawnXMax", 1) * renderer.random.nextFloat() * (float) Math.cos(angle);
+				posY = renderer.preferences.getFloat("spawnYMax", 1) * renderer.random.nextFloat() * (float) Math.sin(angle);
+			}
+			else if (renderer.shape == 1)
+			{
+				float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
+				posX = ((renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * 0.5F + 0.5F) * (float) Math.cos(angle);
+				posY = ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F) * (float) Math.sin(angle);
+			}
+			else if (renderer.shape == 2)
+			{
+				float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
+				posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
+				posY = (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+			}
+			else
+			{
+				float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
+				posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
+				posY = (renderer.random.nextBoolean() ? 1 : -1) * (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + 3 * renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+			}
+		}
+		else
+		{
+			posX = (renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * ((float) renderer.width / renderer.height);
+			posY = renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1));
+		}
 		
 		velX = 0;
 		velY = 0;

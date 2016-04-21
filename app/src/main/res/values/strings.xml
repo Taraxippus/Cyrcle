@@ -5,6 +5,7 @@
   
 	<string-array name="shape">
 		<item>Circle</item>
+		<item>Ring</item>
 		<item>Wave</item>
 		<item>Double wave</item>
 	</string-array>
