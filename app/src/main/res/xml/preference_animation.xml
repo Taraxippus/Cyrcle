@@ -73,6 +73,27 @@
 			android:defaultValue="true"
 		/>
 	
+		<CheckBoxPreference
+            android:title="Fade in and out"
+			android:summary="Circles will fade in when spawning and fade out when dying"
+            android:key="fade" 
+			android:defaultValue="true"
+		/>
+		
+		<Preference
+            android:title="Change fade in duration"
+			android:summary="Change how long circles will fade"
+            android:key="fadeIn" 
+			android:dependency="fade"
+		/>
+	
+		<Preference
+            android:title="Change fade out duration"
+			android:summary="Change how long circles will fade"
+            android:key="fadeOut" 
+			android:dependency="fade"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
@@ -182,7 +203,7 @@
             android:key="lifeTime" 
 			android:dependency="respawn"
 		/>
-
+	
 		<CheckBoxPreference
             android:title="Animate alpha"
 			android:summary="Circles will change the transparency over their lifetime"
