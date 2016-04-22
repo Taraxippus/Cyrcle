@@ -1,0 +1,20 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="75dp"
+    android:layout_height="wrap_content"
+	android:layout_gravity="center"
+	android:gravity="center"
+	android:padding="8dp"
+    android:orientation="vertical">
+
+	<Button
+		android:id="@+id/button_add"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:gravity="center"
+		android:text="+"
+		android:textAppearance="?android:attr/textAppearanceLarge"
+		android:textStyle="bold"
+		android:background="?android:attr/selectableItemBackgroundBorderless"/>
+
+</LinearLayout>

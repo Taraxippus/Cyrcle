@@ -1,16 +1,15 @@
 package com.taraxippus.cyrcle;
 
 import android.preference.Preference;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.text.GetChars;
 
 public class PresetPreference extends Preference
 {
@@ -46,6 +45,26 @@ public class PresetPreference extends Preference
 			image = (ImageView) v.findViewById(R.id.image_preset);
 		}
 	}
+	
+	public class AddViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
+	{
+		final Button add;
+		
+		public AddViewHolder(View v)
+		{
+			super(v);
+
+			add = (Button) v.findViewById(R.id.button_add);
+			add.setOnClickListener(this);
+		}
+
+		@Override
+		public void onClick(View v)
+		{
+			
+		}
+	}
+
 
 	public class PresetAdapter extends RecyclerView.Adapter implements View.OnClickListener
 	{
@@ -69,7 +88,7 @@ public class PresetPreference extends Preference
 				holder = new PresetViewHolder(v);
 			}
 			else 
-				holder = new PresetViewHolder(LayoutInflater.from(getContext()).inflate(R.layout.preset, group, false));
+				holder = new AddViewHolder(LayoutInflater.from(getContext()).inflate(R.layout.preset_add, group, false));
 
 
 			return holder;
@@ -93,16 +112,12 @@ public class PresetPreference extends Preference
 				((PresetViewHolder) holder).text.setText("Preset " + position);
 				((PresetViewHolder) holder).image.setImageResource(R.drawable.ic_launcher);
 			}
-			else
-			{
-				((PresetViewHolder) holder).text.setText("+");
-			}
 		}
 
 		@Override
 		public int getItemCount()
 		{
-			return 10;
+			return 1 + 10;
 		}
 
 		@Override
