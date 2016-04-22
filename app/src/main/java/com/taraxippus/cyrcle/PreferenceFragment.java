@@ -15,9 +15,18 @@ import android.transition.TransitionInflater;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
 {
+	SharedPreferences preferences;
+	
 	public PreferenceFragment()
 	{
 		super();
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 	}
 	
 	public void chooseColor(final String sharedPreference, final String def)
@@ -32,14 +41,14 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 		
 		try
 		{
-			Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
+			Color.parseColor(preferences.getString(sharedPreference, def));
 		}
 		catch (Exception e)
 		{
-			PreferenceManager.getDefaultSharedPreferences(getContext()).edit().putString(sharedPreference, def).commit();
+			preferences.edit().putString(sharedPreference, def).commit();
 		}
 
-		int colorInt = 0xFF000000 | Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
+		int colorInt = 0xFF000000 | Color.parseColor(preferences.getString(sharedPreference, def));
 		p.setIcon(getIcon(colorInt));
 		
 //		if (sharedPreference.equals("colorBackground1"))
@@ -54,7 +63,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				@Override
 				public boolean onPreferenceClick(Preference p1)
 				{
-					int colorInt = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(getContext()).getString(sharedPreference, def));
+					int colorInt = Color.parseColor(preferences.getString(sharedPreference, def));
 
 					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
 					alertDialog.setTitle("Choose color");
@@ -127,7 +136,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 								int colorInt = fromRGB(red.getProgress(), green.getProgress(), blue.getProgress());
 								hex.setText(Integer.toHexString(colorInt).substring(2).toUpperCase());
 
-								PreferenceManager.getDefaultSharedPreferences(getContext()).edit().putString(sharedPreference, "#" + hex.getText().toString()).commit();
+								preferences.edit().putString(sharedPreference, "#" + hex.getText().toString()).commit();
 								p.setIcon(getIcon(0xFF000000 | colorInt));
 
 //								if (sharedPreference.equals("colorBackground1"))
@@ -200,8 +209,6 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 			return;
 		}
 		
-		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-
 		final String summary = p.getSummary().toString();
 
 		p.setSummary(summary + "\nCurrent: "
@@ -348,8 +355,6 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 			return;
 		}
 		
-		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-
 		final String summary = p.getSummary().toString();
 
 		p.setSummary(summary + "\nCurrent: "
