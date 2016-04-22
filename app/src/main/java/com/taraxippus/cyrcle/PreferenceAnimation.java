@@ -29,8 +29,10 @@ public class PreferenceAnimation extends PreferenceFragment
 
 		chooseMinMax("spawnX", -1, 1, 100, -1, 1);
 		chooseMinMax("spawnY", -1, 1, 100, -1, 1);
-		chooseValue("repulsionStrength", "strength", "", 0, 1, 100, 0.5F);
+		chooseValue("fadeIn", "duration", " s", 0, 5, 50, 1F);
+		chooseValue("fadeOut", "duration", " s", 0, 5, 50, 1F);
 		
+		chooseValue("repulsionStrength", "strength", "", 0, 1, 100, 0.5F);
 		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
 		chooseValue("damping", "damping", "", 0, 5, 100, 0.05F);
 		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
@@ -40,7 +42,7 @@ public class PreferenceAnimation extends PreferenceFragment
 		chooseMinMax("rotationStart", -180, 180, 1, -180, 180);
 		chooseMinMax("rotationSpeed", -180, 180, 1, -45, 45);
 
-		chooseMinMax("lifeTime", 2, 120, 1, 30F, 60F);
+		chooseMinMax("lifeTime", 0, 120, 8, 30F, 60F);
 		chooseMinMax("targetAlpha", 0, 1, 100, 0.0F, 0.01F);
 		chooseColor("targetColor", "#000000");
 		chooseMinMax("targetSize", 0, 1, 100, 0.0F, 0.01F);
