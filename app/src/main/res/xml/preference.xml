@@ -12,6 +12,13 @@
 	/>
 
 	<PreferenceCategory
+		android:title="Presets" >
+		
+		<com.taraxippus.cyrcle.PresetPreference />
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory
 		android:title="Preferences" >
 
 		<Preference

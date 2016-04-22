@@ -45,7 +45,7 @@ public class PreferenceMain extends PreferenceFragment
 					return true;
 				}
 			});
-
+			
 		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
 		chooseValue("ups", "Update frequence", " ups", 5, 60, 1, 45);
 		
