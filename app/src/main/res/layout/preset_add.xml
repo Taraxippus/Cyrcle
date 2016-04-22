@@ -1,20 +1,25 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="75dp"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
 	android:layout_gravity="center"
 	android:gravity="center"
-	android:padding="8dp"
-    android:orientation="vertical">
+	android:padding="8dp">
 
-	<Button
+	<ImageView
 		android:id="@+id/button_add"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
+		android:layout_width="36dp"
+		android:layout_height="36dp"
 		android:layout_gravity="center"
 		android:gravity="center"
-		android:text="+"
-		android:textAppearance="?android:attr/textAppearanceLarge"
-		android:textStyle="bold"
-		android:background="?android:attr/selectableItemBackgroundBorderless"/>
+		android:src="@drawable/circle_small"
+		android:elevation="8dp"/>
 
-</LinearLayout>
+	<ImageView
+		android:layout_width="24dp"
+		android:layout_height="24dp"
+		android:layout_gravity="center"
+		android:gravity="center"
+		android:src="@drawable/add"
+		android:elevation="9dp"/>
+	
+</FrameLayout>

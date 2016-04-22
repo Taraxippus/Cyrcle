@@ -56,7 +56,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	final int[] ibo_circle = new int[1];
 	
 	private boolean updateColors, updateCircleShape, updateTextures,
-	updateVignette, updateVignetteBlur, updateCircleProgram;
+	updateVignette, updateVignetteBlur, updateCircleProgram, updateBitmap;
 	
 	private long lastTime;
 	private float delta;
@@ -456,6 +456,45 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		}
 	}
 	
+	Runnable bitmapRunnable;
+	public Bitmap bitmap;
+	
+	public void renderToBitmap(Runnable onFinished)
+	{
+		bitmapRunnable = onFinished;
+		
+		updateBitmap = true;
+	}
+	
+	public void updateBitmap()
+	{
+		int b[] = new int[width * height];
+		int bt[] = new int[width * height];
+		IntBuffer ib = IntBuffer.wrap(b);
+		ib.position(0);
+		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, ib);
+
+		for(int i = 0, k = 0; i < height; i++, k++)
+		{          
+			for(int j = 0; j < width; j++)
+			{
+				int pix=b[i * width + j];
+				int pb=(pix >> 16) & 0xff;
+				int pr=(pix << 16) & 0x00ff0000;
+				int pix1 = (pix & 0xff00ff00) | pr | pb;
+				bt[(height - k - 1) * width + j] = pix1;
+			}
+		}
+
+
+		bitmap = Bitmap.createBitmap(bt, width, height, Bitmap.Config.ARGB_8888);
+		
+		((WallpaperPreferenceActivity) context).runOnUiThread(bitmapRunnable);
+		
+		updateBitmap = false;
+		bitmapRunnable = null;
+	}
+	
 	@Override
 	public void onDrawFrame(GL10 p1)
 	{
@@ -532,6 +571,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		if (updateTextures)
 			updateTextures();
 		
+		if (updateBitmap)
+		{
+			textureBufferTMP.init(false, width, height);
+			textureBufferTMP.bind(true);
+		}
+			
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
 		if (preferences.getBoolean("additive", true))
@@ -592,6 +637,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				updateVignette();
 
 			shape_fullscreen.render();
+		}
+		
+		if (updateBitmap)
+		{
+			updateBitmap();
+			Framebuffer.release(this, false);
 		}
 	}
 	

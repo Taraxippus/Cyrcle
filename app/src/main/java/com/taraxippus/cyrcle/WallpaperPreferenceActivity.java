@@ -16,7 +16,7 @@ import android.graphics.drawable.ColorDrawable;
 
 public class WallpaperPreferenceActivity extends Activity
 {
-	private CyrcleRenderer renderer;
+	public CyrcleRenderer renderer;
 	private GLSurfaceView glSurfaceView;
 	private ViewGroup.LayoutParams layoutSmall, layoutBig;
 	
