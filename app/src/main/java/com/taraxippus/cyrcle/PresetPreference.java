@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Outline;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
@@ -14,6 +15,7 @@ import android.text.InputType;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -21,13 +23,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import android.graphics.BitmapFactory;
 
 public class PresetPreference extends Preference
 {
@@ -127,6 +127,7 @@ public class PresetPreference extends Preference
 
 			add = (ImageView) v.findViewById(R.id.button_add);
 			add.setOnClickListener(this);
+			
 			ViewOutlineProvider viewOutlineProvider = new ViewOutlineProvider() 
 			{
 				@Override
@@ -185,7 +186,7 @@ public class PresetPreference extends Preference
 									
 									try
 									{
-										FileOutputStream fOut = getContext().openFileOutput("/com.taraxippus.cyrcle.presets." + presets.get(presets.size() - 1) + ".png", Context.MODE_PRIVATE);
+										FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(presets.size() - 1) + ".png", Context.MODE_PRIVATE);
 										bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
 										fOut.flush();
 										fOut.close();
@@ -327,13 +328,14 @@ public class PresetPreference extends Preference
 										public void run()
 										{
 											Bitmap bitmap = ((WallpaperPreferenceActivity) getContext()).renderer.bitmap;
-											presets_bitmap.get(selected).recycle();
+											if (presets_bitmap.get(selected) != null)
+												presets_bitmap.get(selected).recycle();
 											presets_bitmap.set(selected, bitmap);
 											notifyItemChanged(selected);
 											
 											try
 											{
-												FileOutputStream fOut = getContext().openFileOutput("/com.taraxippus.cyrcle.presets." + presets.get(selected) + ".png", Context.MODE_PRIVATE);
+												FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(selected) + ".png", Context.MODE_PRIVATE);
 												bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
 												fOut.flush();
 												fOut.close();

@@ -487,7 +487,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		}
 
 
-		bitmap = Bitmap.createBitmap(bt, width, height, Bitmap.Config.ARGB_8888);
+		Bitmap bitmap1 = Bitmap.createBitmap(bt, width, height, Bitmap.Config.ARGB_8888);
+		bitmap = Bitmap.createScaledBitmap(bitmap1, bitmap1.getWidth() / 4, bitmap1.getHeight() / 4, true);
+		bitmap1.recycle();
 		
 		((WallpaperPreferenceActivity) context).runOnUiThread(bitmapRunnable);
 		
