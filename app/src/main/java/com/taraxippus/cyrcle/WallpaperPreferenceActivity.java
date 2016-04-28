@@ -1,18 +1,19 @@
 package com.taraxippus.cyrcle;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 import com.taraxippus.cyrcle.gl.CyrcleRenderer;
-import android.graphics.drawable.ColorDrawable;
 
 public class WallpaperPreferenceActivity extends Activity
 {

@@ -3,6 +3,7 @@ package com.taraxippus.cyrcle;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,7 +16,6 @@ import android.text.InputType;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -23,7 +23,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,14 +52,30 @@ public class PresetPreference extends Preference
 	protected View onCreateView(ViewGroup parent)
 	{
 		globalPreferences = getContext().getSharedPreferences("com.taraxippus.cyrcle.GLOBAL_PREFERENCES",  Context.MODE_PRIVATE);
-		
+	
 		this.presets.clear();
-		Set<String> presets = globalPreferences.getStringSet("presets", new HashSet<String>());
-		for (String preset : presets)
+		
+		if (globalPreferences.getAll().get("presets") instanceof Set)
 		{
-			this.presets.add(preset);
-			this.presets_bitmap.add(BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
+			Set<String> presets = globalPreferences.getStringSet("presets", new HashSet<String>());
+
+			for (String preset : presets)
+			{
+				this.presets.add(preset);
+				this.presets_bitmap.add(BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
+			}
 		}
+		else
+		{
+			String[] presets = globalPreferences.getString("presets", "").split("/");
+			
+			for (String preset : presets)
+			{
+				this.presets.add(preset);
+				this.presets_bitmap.add(BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
+			}
+		}
+		
 		
 		recyclerView = new RecyclerView(getContext());
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -66,11 +85,15 @@ public class PresetPreference extends Preference
 	
 	public void savePresets()
 	{
-		Set<String> presets = new HashSet<>();
-		for (String s : PresetPreference.this.presets)
-			presets.add(s);
-
-		globalPreferences.edit().putStringSet("presets", presets).apply();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < presets.size(); i++)
+		{
+			if (i > 0)
+				sb.append("/");
+				
+			sb.append(presets.get(i));
+		}
+		globalPreferences.edit().putString("presets", sb.toString()).apply();
 	}
 	
 	public void copySharedPreferences(SharedPreferences from, SharedPreferences to)
@@ -78,6 +101,8 @@ public class PresetPreference extends Preference
 		SharedPreferences.Editor editor = to.edit();
 		Map<String, ?> all = from.getAll();
 
+		editor.clear();
+		
 		for (String key : all.keySet())
 		{
 			if (all.get(key) instanceof String)
@@ -156,7 +181,7 @@ public class PresetPreference extends Preference
 					@Override
 					public void onClick(DialogInterface dialog, int which) 
 					{
-						String name = input.getText().toString();
+						String name = input.getText().toString().replace('/', ' ');
 						
 						if (name.isEmpty())
 							name = name1;
@@ -347,6 +372,33 @@ public class PresetPreference extends Preference
 										}
 									});
 									
+								return true;
+								
+							case R.id.item_share:
+								
+								Intent sendIntent = new Intent();
+								sendIntent.setAction(Intent.ACTION_SEND);
+								
+								StringBuilder text = new StringBuilder();
+								
+								try
+								{
+									BufferedReader fIn = new BufferedReader(new InputStreamReader(new FileInputStream(getContext().getFilesDir().getParent() + "/shared_prefs/com.taraxippus.cyrcle.presets." + presets.get(index) + ".xml")));
+									String line;
+									while ((line = fIn.readLine()) != null)
+										text.append(line).append("\n");
+									
+									fIn.close();
+								}
+								catch (Exception e) 
+								{
+									e.printStackTrace();
+								}
+								
+								sendIntent.putExtra(Intent.EXTRA_TEXT, text.toString());
+								sendIntent.setType("text/xml");
+								getContext().startActivity(sendIntent);
+								
 								return true;
 								
 							default:

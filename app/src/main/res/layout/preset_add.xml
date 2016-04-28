@@ -12,7 +12,8 @@
 		android:layout_height="36dp"
 		android:layout_gravity="center"
 		android:gravity="center"
-		android:src="@drawable/circle_small"
+		android:src="@drawable/circle_ripple"
+		android:background="@drawable/circle_small"
 		android:elevation="8dp"/>
 
 	<ImageView
