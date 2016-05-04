@@ -122,9 +122,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									green.setProgress(Color.green(colorInt));
 									blue.setProgress(Color.blue(colorInt));
 
-									return true;
+									return false;
 								}
-								return false;
+								return true;
 							}	
 						});
 
@@ -252,12 +252,12 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									}
 									catch (Exception e)
 									{
-										return false;
+										return true;
 									}
 
-									return true;
+									return false;
 								}
-								return false;
+								return true;
 							}	
 						});
 						
@@ -276,12 +276,12 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									}
 									catch (Exception e)
 									{
-										return false;
+										return true;
 									}
 
-									return true;
+									return false;
 								}
-								return false;
+								return true;
 							}	
 						});
 						
@@ -346,6 +346,11 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
+								if (text_min.hasFocus())
+									text_min.onEditorAction(EditorInfo.IME_ACTION_GO);
+								if (text_max.hasFocus())
+									text_max.onEditorAction(EditorInfo.IME_ACTION_GO);
+								
 								alertDialog.dismiss();
 							}
 						});
@@ -436,12 +441,12 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									}
 									catch (Exception e)
 									{
-										return false;
+										return true;
 									}
 									
-									return true;
+									return false;
 								}
-								return false;
+								return true;
 							}	
 						});
 					
@@ -470,6 +475,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
+								if (text_value.hasFocus())
+									text_value.onEditorAction(EditorInfo.IME_ACTION_GO);
+								
 								alertDialog.dismiss();
 							}
 						});

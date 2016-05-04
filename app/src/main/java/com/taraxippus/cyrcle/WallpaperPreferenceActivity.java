@@ -1,17 +1,15 @@
 package com.taraxippus.cyrcle;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.util.LruCache;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
-import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 import com.taraxippus.cyrcle.gl.CyrcleRenderer;
 
@@ -20,6 +18,8 @@ public class WallpaperPreferenceActivity extends Activity
 	public CyrcleRenderer renderer;
 	private GLSurfaceView glSurfaceView;
 	private ViewGroup.LayoutParams layoutSmall, layoutBig;
+	
+	public LruCache<String, Bitmap> presetCache;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
@@ -58,6 +58,15 @@ public class WallpaperPreferenceActivity extends Activity
 		});
 		
 		((FrameLayout) findViewById(R.id.layout_preview)).addView(glSurfaceView, layoutSmall);
+		
+		presetCache = new LruCache<String, Bitmap>( (int) (Runtime.getRuntime().maxMemory() / 1024) / 8) 
+		{
+			@Override
+			protected int sizeOf(String key, Bitmap bitmap) 
+			{
+				return bitmap.getByteCount() / 1024;
+			}
+		};
 	}
 
 	@Override
