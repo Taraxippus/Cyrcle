@@ -101,7 +101,7 @@
 		
 		<CheckBoxPreference
             android:title="Enable repulsion"
-			android:summary="Circles will move away from each other.\nExtremly performance intensiv"
+			android:summary="Circles will move away from each other.\nExtremly performance intensive"
             android:key="repulsion" 
 			android:defaultValue="false"
 		/>

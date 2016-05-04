@@ -38,6 +38,7 @@
 				android:layout_height="wrap_content"
 				android:digits="0123456789.-"
 				android:inputType="numberDecimal"
+				android:imeOptions="actionGo"
 				android:text="0.5"/>
 			
 		</LinearLayout>
@@ -68,6 +69,7 @@
 				android:layout_height="wrap_content"
 				android:digits="0123456789.-"
 				android:inputType="numberDecimal"
+				android:imeOptions="actionGo"
 				android:text="0.5"/>
 			
 		</LinearLayout>

@@ -195,23 +195,27 @@ public class PresetPreference extends Preference
 						}
 						
 						presets.add(name);
+						presets_bitmap.add(null);
+						final int selected = presets.size() - 1;
 						recyclerView.getAdapter().notifyItemInserted(presets.size() - 1);
 
 						copySharedPreferences(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext().getSharedPreferences("com.taraxippus.cyrcle.presets." + name,  Context.MODE_PRIVATE));
 						savePresets();
 						
 						((WallpaperPreferenceActivity) getContext()).renderer.renderToBitmap(new Runnable()
-						{
+							{
 								@Override
 								public void run()
 								{
 									Bitmap bitmap = ((WallpaperPreferenceActivity) getContext()).renderer.bitmap;
-									presets_bitmap.add(bitmap);
-									recyclerView.getAdapter().notifyItemChanged(presets.size() - 1);
-									
+									if (presets_bitmap.get(selected) != null)
+										presets_bitmap.get(selected).recycle();
+									presets_bitmap.set(selected, bitmap);
+									recyclerView.getAdapter().notifyItemChanged(selected);
+
 									try
 									{
-										FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(presets.size() - 1) + ".png", Context.MODE_PRIVATE);
+										FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(selected) + ".png", Context.MODE_PRIVATE);
 										bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
 										fOut.flush();
 										fOut.close();
@@ -221,7 +225,7 @@ public class PresetPreference extends Preference
 										e.printStackTrace();
 									}
 								}
-						});
+							});
 					}
 				});
 			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() 
@@ -290,7 +294,7 @@ public class PresetPreference extends Preference
 				if (position < presets_bitmap.size() && presets_bitmap.get(position) != null)
 					((PresetViewHolder) holder).image.setImageBitmap(presets_bitmap.get(position));
 				else
-					((PresetViewHolder) holder).image.setImageResource(R.drawable.ic_launcher);
+					((PresetViewHolder) holder).image.setImageResource(R.drawable.launcher);
 			}
 		}
 

@@ -21,7 +21,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public final Random random = new Random();
 	public int width, height;
 	public boolean isPreview;
-	public int screenHeight;
+	public int realHeight, screenHeight;
 	
 	public final Shape shape_fullscreen = new Shape();
 	
@@ -143,13 +143,16 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public void onSurfaceChanged(GL10 p1, int width, int height)
 	{
 		if (isPreview)
+		{
+			realHeight = height;
 			height = screenHeight;
-			
+		}
+
 		this.width = width;
 		this.height = height;
 		
-		GLES20.glViewport(0, 0, width, height);
-		
+		GLES20.glViewport(0, isPreview ? - height / 2 + realHeight / 2 : 0, width, height);
+	
 		float ratio = (float) width / height;
 		Matrix.orthoM(matrix_projection, 0, -ratio, ratio, -1, 1, 0.5F, 1.5F);		
 		updateMVP();
@@ -242,7 +245,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				if (preferences.getString("circleTextureFile", "").isEmpty())
 				{
-					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 				}
 				else
 					try
@@ -251,7 +254,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 					}
 					catch (Exception e)
 					{
-						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 					}
 					
 				size = Math.min(bitmap.getWidth(), bitmap.getHeight());
@@ -306,7 +309,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				if (preferences.getString("ringTextureFile", "").isEmpty())
 				{
-					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+					bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 				}
 				else
 					try
@@ -315,7 +318,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 					}
 					catch (Exception e)
 					{
-						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher);
+						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 					}
 				
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));

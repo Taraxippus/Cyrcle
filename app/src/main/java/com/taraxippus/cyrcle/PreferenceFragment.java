@@ -239,10 +239,52 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
 					final TextView text_min = (TextView) v.findViewById(R.id.text_min);
 					text_min.setText(String.format("%.2f", (int) (lastMin * 100) / 100F));
+					text_min.setOnEditorActionListener(new EditText.OnEditorActionListener()
+						{
+							@Override
+							public boolean onEditorAction(TextView p1, int p2, KeyEvent p3)
+							{
+								if (p2 == EditorInfo.IME_ACTION_GO)
+								{
+									try
+									{
+										slider_min.setProgress((int) ((Float.parseFloat(text_min.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return false;
+									}
 
+									return true;
+								}
+								return false;
+							}	
+						});
+						
 					final TextView text_max = (TextView) v.findViewById(R.id.text_max);
 					text_max.setText(String.format("%.2f", (int) (lastMax * 100) / 100F));
+					text_max.setOnEditorActionListener(new EditText.OnEditorActionListener()
+						{
+							@Override
+							public boolean onEditorAction(TextView p1, int p2, KeyEvent p3)
+							{
+								if (p2 == EditorInfo.IME_ACTION_GO)
+								{
+									try
+									{
+										slider_max.setProgress((int) ((Float.parseFloat(text_max.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return false;
+									}
 
+									return true;
+								}
+								return false;
+							}	
+						});
+						
 					slider_min.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
 						{
 							@Override
@@ -377,9 +419,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					slider.setMax((int) ((max - min) * scale));
 					slider.setProgress((int) (scale * (last - min)));
 
-
 					((TextView) v.findViewById(R.id.text_unit)).setText(unit.trim());
-					
 					
 					final EditText text_value = (EditText) v.findViewById(R.id.text_value);
 					text_value.setText(String.format("%.2f", (int) (last * 100) / 100F));
@@ -390,6 +430,14 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							{
 								if (p2 == EditorInfo.IME_ACTION_GO)
 								{
+									try
+									{
+										slider.setProgress((int) ((Float.parseFloat(text_value.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return false;
+									}
 									
 									return true;
 								}

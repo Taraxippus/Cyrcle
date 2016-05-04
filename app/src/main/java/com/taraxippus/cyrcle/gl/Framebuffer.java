@@ -74,7 +74,7 @@ public class Framebuffer
 	public static void release(CyrcleRenderer renderer, boolean clear)
 	{
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-		GLES20.glViewport(0, 0, renderer.width, renderer.height);
+		GLES20.glViewport(0, renderer.isPreview ? - renderer.height / 2 + renderer.realHeight / 2 : 0, renderer.width, renderer.height);
 		
 		if (clear)
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
