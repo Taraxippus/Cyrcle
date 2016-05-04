@@ -55,7 +55,7 @@
 	
 		<CheckBoxPreference
             android:title="Interpolate colors"
-			android:summary="Color circles in an inbetween color"
+			android:summary="Color circles in an mixed color"
             android:key="interpolate" 
 			android:defaultValue="true"
 		/>
@@ -74,7 +74,7 @@
 
 		<Preference
             android:title="Change blur amount"
-			android:summary="Change percentage of circles that should be blured"
+			android:summary="Change percentage of circles that should be blurred"
             android:key="blurPercentage" 
 			android:dependency="blur"
 		/>

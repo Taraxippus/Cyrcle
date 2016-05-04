@@ -1,18 +1,28 @@
 package com.taraxippus.cyrcle.gl;
 
-import android.content.*;
-import android.graphics.*;
-import android.opengl.*;
-import android.preference.*;
-import com.taraxippus.cyrcle.*;
-import javax.microedition.khronos.egl.*;
-import javax.microedition.khronos.opengles.*;
-
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.preference.PreferenceManager;
+
+import com.taraxippus.cyrcle.R;
+import com.taraxippus.cyrcle.WallpaperPreferenceActivity;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+import java.util.Arrays;
+import java.util.Random;
+
 import javax.microedition.khronos.egl.EGLConfig;
-import java.nio.*;
-import android.os.*;
-import java.util.*;
+import javax.microedition.khronos.opengles.GL10;
 
 public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -676,7 +686,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			x = ((x / width) * 2 - 1) * ((float) width / height);
 			y = ((1 - y / height) * 2 - 1);
 			
-			float distance = 0;
+			float distance;
 			float deltaX;
 			float deltaY;
 			
@@ -735,74 +745,102 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				animateShape = preferences.getBoolean("animateShape", false);
 				respawn();
 				break;
-		}
-		
-		if (key.equals("sizeMax"))
-			updateTextures = true;
-			
-		if (key.equals("colorBackground1") || key.equals("colorBackground2"))
-			updateColors = true;
-			
-		else if (key.equals("spawnXMin") || key.equals("spawnXMax")
-			|| key.equals("spawnYMin") || key.equals("spawnYMax")
-			|| key.equals("sizeMin") || key.equals("sizeMax")
-			|| key.equals("alphaMin") || key.equals("alphaMax")
-			|| key.equals("colorCircle1") || key.equals("colorCircle2")
-			|| key.equals("interpolate") || key.equals("flickering") 
-			|| key.equals("rings") || key.equals("ringPercentage")
-		 	|| key.equals("blur") || key.equals("blurPercentage")
-			|| key.equals("respawn") || key.equals("lifeTimeMin") || key.equals("lifeTimeMax")
-			|| key.equals("directionXMin") || key.equals("directionXMax")
-			|| key.equals("directionYMin") || key.equals("directionYMax")
-			|| key.equals("animateColor") || key.equals("colorTarget") || key.equals("targetColor")
-			|| key.equals("animateAlpha") || key.equals("alphaTarget") || key.equals("targetAlphaMin") || key.equals("targetAlphaMax")
-			|| key.equals("animateSize") || key.equals("sizeTarget") || key.equals("targetSizeMin") || key.equals("targetSizeMax")
-			|| key.equals("rotation") || key.equals("rotationStartMin") || key.equals("rotationStartMax")
-			|| key.equals("rotationSpeedMin") || key.equals("rotationSpeedMax") || key.equals("direction"))
-			{
+			case "colorBackground1":
+			case "colorBackground2":
+				updateColors = true;
+				break;
+			case "spawnXMin":
+			case "spawnXMax":
+			case "spawnYMin":
+			case "spawnYMax":
+			case "sizeMin":
+			case "alphaMin":
+			case "alphaMax":
+			case "colorCircle1":
+			case "colorCircle2":
+			case "interpolate":
+			case "flickering":
+			case "rings":
+			case "ringPercentage":
+			case "blur":
+			case "blurPercentage":
+			case "respawn":
+			case "lifeTimeMin":
+			case "lifeTimeMax":
+			case "directionXMin":
+			case "directionXMax":
+			case "directionYMin":
+			case "directionYMax":
+			case "animateColor":
+			case "colorTarget":
+			case "targetColor":
+			case "animateAlpha":
+			case "alphaTarget":
+			case "targetAlphaMin":
+			case "targetAlphaMax":
+			case "animateSize":
+			case "sizeTarget":
+			case "targetSizeMin":
+			case "targetSizeMax":
+			case "rotation":
+			case "rotationStartMin":
+			case "rotationStartMax":
+			case "rotationSpeedMin":
+			case "rotationSpeedMax":
+			case "direction":
+			case "sizeMax":
+				updateTextures = true;
+
 				updatePreferences();
-				
+
 				respawn();
-			}
-			
-		else if (key.equals("repulsion"))
-			repulsion = preferences.getBoolean("repulsion", false);
-			
-		else if (key.equals("touch"))
-			touch = preferences.getBoolean("touch", true);
-			
-		else if (key.equals("swipe"))
-			touch = preferences.getBoolean("swipe", true);
-		
-			
-		else if (key.equals("randomnessMin") || key.equals("randomnessMax")
-			|| key.equals("speedMin") || key.equals("speedMax"))
-		
-			resetTarget();
-			
-		else if (key.equals("blurStrength") || key.equals("ringWidth")
-			|| key.equals("circleTexture") || key.equals("circleTextureFile")
-			|| key.equals("ringTexture") || key.equals("ringTextureFile")
-			|| key.equals("textureQuality"))
-			updateTextures = true;
-			
-		else if (key.equals("vignetteBlur"))
-			updateCircleProgram = true;
-			
-		else if (key.equals("vignetteBlurStrength") || key.equals("vignetteBlurRadius"))
-			updateVignetteBlur = true;
-			
-		else if (key.equals("colorVignette") || key.equals("vignetteStrength") || key.equals("vignetteRadius"))
-			updateVignette = true;
-			
-		else if (key.equals("count"))
-			updateCircleShape = true;
-			
-		else if (key.equals("fps"))
-			maxFPS = (int) preferences.getFloat("fps", 45);
-			
-		else if (key.equals("ups"))
-			fixedDelta = 1F / preferences.getFloat("ups", 45);
+				break;
+			case "repulsion":
+				repulsion = preferences.getBoolean("repulsion", false);
+				break;
+			case "touch":
+				touch = preferences.getBoolean("touch", true);
+				break;
+			case "swipe":
+				touch = preferences.getBoolean("swipe", true);
+				break;
+			case "randomnessMin":
+			case "randomnessMax":
+			case "speedMin":
+			case "speedMax":
+				resetTarget();
+				break;
+			case "blurStrength":
+			case "ringWidth":
+			case "circleTexture":
+			case "circleTextureFile":
+			case "ringTexture":
+			case "ringTextureFile":
+			case "textureQuality":
+				updateTextures = true;
+				break;
+			case "vignetteBlur":
+				updateCircleProgram = true;
+				break;
+			case "vignetteBlurStrength":
+			case "vignetteBlurRadius":
+				updateVignetteBlur = true;
+				break;
+			case "colorVignette":
+			case "vignetteStrength":
+			case "vignetteRadius":
+				updateVignette = true;
+				break;
+			case "count":
+				updateCircleShape = true;
+				break;
+			case "fps":
+				maxFPS = (int) preferences.getFloat("fps", 45);
+				break;
+			case "ups":
+				fixedDelta = 1F / preferences.getFloat("ups", 45);
+				break;
+		}
 		
 	}
 	
@@ -831,14 +869,4 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		int color = Color.parseColor(preferences.getString(key, def));
 		GLES20.glUniform4f(name, Color.red(color) / 255F, Color.green(color) / 255F, Color.blue(color) / 255F, alpha);
 	}
-	
-	public static int fromARGB(int alpha, int red, int green, int blue)
-	{
-		alpha = (alpha << 24) & 0xFF000000;
-		red = (red << 16) & 0x00FF0000;
-		green = (green << 8) & 0x0000FF00;
-		blue = blue & 0x000000FF;
-		return alpha | red | blue | green;
-	}
-	
 }

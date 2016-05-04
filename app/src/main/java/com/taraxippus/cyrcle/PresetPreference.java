@@ -1,5 +1,7 @@
 package com.taraxippus.cyrcle;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Outline;
 import android.net.Uri;
+import android.os.Build;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -41,6 +44,7 @@ public class PresetPreference extends Preference
 	
 	RecyclerView recyclerView;
 	
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	public PresetPreference(android.content.Context context, android.util.AttributeSet attrs, int defStyleAttr, int defStyleRes) { super(context, attrs, defStyleAttr, defStyleRes); }
 
     public PresetPreference(android.content.Context context, android.util.AttributeSet attrs, int defStyleAttr) { super(context, attrs, defStyleAttr); }
@@ -49,6 +53,7 @@ public class PresetPreference extends Preference
 
     public PresetPreference(android.content.Context context) { super(context); }
 	
+	@SuppressLint("MissingSuperCall")
 	@Override
 	protected View onCreateView(ViewGroup parent)
 	{
@@ -60,9 +65,12 @@ public class PresetPreference extends Preference
 
 		for (String preset : presets)
 		{
+			if (preset.isEmpty())
+				continue;
+
 			this.presets.add(preset);
 			
-			if (((WallpaperPreferenceActivity) getContext()).presetCache.get(preset) == null)
+			if (((WallpaperPreferenceActivity) getContext()).presetCache.get(preset) != null)
 				((WallpaperPreferenceActivity) getContext()).presetCache.put(preset, BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
 		}
 		
@@ -142,16 +150,20 @@ public class PresetPreference extends Preference
 
 			add = (ImageView) v.findViewById(R.id.button_add);
 			add.setOnClickListener(this);
-			
-			ViewOutlineProvider viewOutlineProvider = new ViewOutlineProvider() 
+
+			if (Build.VERSION.SDK_INT >= 21)
 			{
-				@Override
-				public void getOutline(View view, Outline outline) 
+				ViewOutlineProvider viewOutlineProvider = new ViewOutlineProvider()
 				{
-					outline.setOval(0, 0, view.getWidth(), view.getHeight());
-				}
-			};
-			add.setOutlineProvider(viewOutlineProvider);
+					@Override
+					public void getOutline(View view, Outline outline)
+					{
+						if (Build.VERSION.SDK_INT >= 21)
+							outline.setOval(0, 0, view.getWidth(), view.getHeight());
+					}
+				};
+				add.setOutlineProvider(viewOutlineProvider);
+			}
 		}
 
 		@Override
@@ -335,16 +347,7 @@ public class PresetPreference extends Preference
 								
 								new File(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + presets.get(index) + ".png").delete();
 								new File(getContext().getFilesDir().getParentFile() + "/shared_prefs/com.taraxippus.cyrcle.presets." + presets.get(index) + ".xml").delete();
-								
-								for (String s : new File(getContext().getFilesDir().getParentFile() + "/shared_prefs").list())
-								{
-									System.out.println(s);
-								}
-								for (String s : getContext().getFilesDir().list())
-								{
-									System.out.println(s);
-								}
-								
+
 								presets.remove(index);
 								notifyItemRemoved(index);
 								

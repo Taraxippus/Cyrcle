@@ -20,7 +20,6 @@
 		android:layout_gravity="center"
 		android:gravity="center"
 		android:paddingTop="8dp"
-		android:text="Preset"
 		android:textAppearance="?android:attr/textAppearanceMedium" />
 	
 </LinearLayout>

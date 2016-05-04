@@ -1,17 +1,22 @@
 package com.taraxippus.cyrcle;
 
-import android.app.*;
-import android.content.*;
-import android.graphics.*;
-import android.graphics.drawable.*;
-import android.net.*;
-import android.os.*;
-import android.preference.*;
-import android.view.*;
-import android.view.inputmethod.*;
-import android.widget.*;
-import java.io.*;
-import android.transition.TransitionInflater;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.util.Locale;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
 {
@@ -26,7 +31,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 	}
 	
 	public void chooseColor(final String sharedPreference, final String def)
@@ -45,7 +50,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 		}
 		catch (Exception e)
 		{
-			preferences.edit().putString(sharedPreference, def).commit();
+			preferences.edit().putString(sharedPreference, def).apply();
 		}
 
 		int colorInt = 0xFF000000 | Color.parseColor(preferences.getString(sharedPreference, def));
@@ -65,7 +70,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				{
 					int colorInt = Color.parseColor(preferences.getString(sharedPreference, def));
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
 					alertDialog.setTitle("Choose color");
 					
 					final View v = getActivity().getLayoutInflater().inflate(R.layout.color, null);
@@ -136,7 +141,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 								int colorInt = fromRGB(red.getProgress(), green.getProgress(), blue.getProgress());
 								hex.setText(Integer.toHexString(colorInt).substring(2).toUpperCase());
 
-								preferences.edit().putString(sharedPreference, "#" + hex.getText().toString()).commit();
+								preferences.edit().putString(sharedPreference, "#" + hex.getText().toString()).apply();
 								p.setIcon(getIcon(0xFF000000 | colorInt));
 
 //								if (sharedPreference.equals("colorBackground1"))
@@ -223,7 +228,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					final float lastMin = preferences.getFloat(key + "Min", defMin);
 					final float lastMax = preferences.getFloat(key + "Max", defMax);
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
 					alertDialog.setTitle("Change min and max");
 
 					final View v = getActivity().getLayoutInflater().inflate(R.layout.minmax, null);
@@ -238,7 +243,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					slider_max.setProgress((int) (scale * (lastMax - min)));
 
 					final TextView text_min = (TextView) v.findViewById(R.id.text_min);
-					text_min.setText(String.format("%.2f", (int) (lastMin * 100) / 100F));
+					text_min.setText(String.format(Locale.US, "%.2f", (int) (lastMin * 100) / 100F));
 					text_min.setOnEditorActionListener(new EditText.OnEditorActionListener()
 						{
 							@Override
@@ -262,7 +267,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 						});
 						
 					final TextView text_max = (TextView) v.findViewById(R.id.text_max);
-					text_max.setText(String.format("%.2f", (int) (lastMax * 100) / 100F));
+					text_max.setText(String.format(Locale.US, "%.2f", (int) (lastMax * 100) / 100F));
 					text_max.setOnEditorActionListener(new EditText.OnEditorActionListener()
 						{
 							@Override
@@ -296,9 +301,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									else
 										slider_max.setProgress(slider_min.getProgress() + 1);
 
-								preferences.edit().putFloat(key + "Min", (float) slider_min.getProgress() / scale + min).putFloat(key + "Max", (float) slider_max.getProgress() / scale + min).commit();
+								preferences.edit().putFloat(key + "Min", (float) slider_min.getProgress() / scale + min).putFloat(key + "Max", (float) slider_max.getProgress() / scale + min).apply();
 
-								text_min.setText(String.format("%.2f", (int) (preferences.getFloat(key + "Min", defMin) * 100) / 100F));
+								text_min.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key + "Min", defMin) * 100) / 100F));
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (preferences.getFloat(key + "Min", defMin) * 100) / 100F
@@ -324,9 +329,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 									else
 										slider_min.setProgress(slider_max.getProgress() - 1);
 
-								preferences.edit().putFloat(key + "Min", (float) slider_min.getProgress() / scale + min).putFloat(key + "Max", (float) slider_max.getProgress() / scale + min).commit();
+								preferences.edit().putFloat(key + "Min", (float) slider_min.getProgress() / scale + min).putFloat(key + "Max", (float) slider_max.getProgress() / scale + min).apply();
 
-								text_max.setText(String.format("%.2f", (int) (preferences.getFloat(key + "Max", defMax) * 100) / 100F));
+								text_max.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key + "Max", defMax) * 100) / 100F));
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (preferences.getFloat(key + "Min", defMin) * 100) / 100F
@@ -359,7 +364,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
-								preferences.edit().putFloat(key + "Min", lastMin).putFloat(key + "Max", lastMax).commit();
+								preferences.edit().putFloat(key + "Min", lastMin).putFloat(key + "Max", lastMax).apply();
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (lastMin * 100) / 100F
@@ -414,7 +419,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				{
 					final float last = preferences.getFloat(key, def);
 
-					final AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+					final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
 					alertDialog.setTitle("Change " + name);
 
 					final View v = getActivity().getLayoutInflater().inflate(R.layout.slider, null);
@@ -427,7 +432,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					((TextView) v.findViewById(R.id.text_unit)).setText(unit.trim());
 					
 					final EditText text_value = (EditText) v.findViewById(R.id.text_value);
-					text_value.setText(String.format("%.2f", (int) (last * 100) / 100F));
+					text_value.setText(String.format(Locale.US, "%.2f", (int) (last * 100) / 100F));
 					text_value.setOnEditorActionListener(new EditText.OnEditorActionListener()
 						{
 							@Override
@@ -455,9 +460,9 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onProgressChanged(SeekBar p1, int p2, boolean p3)
 							{
-								preferences.edit().putFloat(key, (float) slider.getProgress() / scale + min).commit();
+								preferences.edit().putFloat(key, (float) slider.getProgress() / scale + min).apply();
 
-								text_value.setText(String.format("%.2f", (int) (preferences.getFloat(key, def) * 100) / 100F));
+								text_value.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key, def) * 100) / 100F));
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (preferences.getFloat(key, def) * 100) / 100F + unit);
@@ -486,7 +491,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
-								preferences.edit().putFloat(key, last).commit();
+								preferences.edit().putFloat(key, last).apply();
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (preferences.getFloat(key, def) * 100) / 100F + unit);

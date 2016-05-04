@@ -3,12 +3,9 @@ package com.taraxippus.cyrcle;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
-import com.taraxippus.cyrcle.CyrcleWallpaperService;
-import android.widget.Toast;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 public class PreferenceMain extends PreferenceFragment
 {
@@ -29,13 +26,13 @@ public class PreferenceMain extends PreferenceFragment
 				@Override
 				public boolean onPreferenceClick(Preference preference)
 				{
-					try
+					if (Build.VERSION.SDK_INT >= 16)
 					{
 						Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
-						intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, new ComponentName(getContext(), CyrcleWallpaperService.class));
+						intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, new ComponentName(getActivity(), CyrcleWallpaperService.class));
 						startActivity(intent);
 					}
-					catch(Exception e)
+					else
 					{
 						Intent intent = new Intent();
 						intent.setAction(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER);
@@ -47,7 +44,7 @@ public class PreferenceMain extends PreferenceFragment
 			});
 			
 		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
-		chooseValue("ups", "Update frequence", " ups", 5, 60, 1, 45);
+		chooseValue("ups", "Update frequency", " ups", 5, 60, 1, 45);
 		
 		findPreference("preferenceCircles").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{

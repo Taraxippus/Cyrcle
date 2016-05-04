@@ -110,7 +110,7 @@ public class Program
 	{
 		InputStream is = context.getResources().openRawResource(resourceId);
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String readLine = null;
+		String readLine;
 
 		StringBuilder file = new StringBuilder();
 

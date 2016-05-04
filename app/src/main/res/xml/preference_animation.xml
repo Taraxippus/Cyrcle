@@ -101,7 +101,7 @@
 		
 		<CheckBoxPreference
             android:title="Enable repulsion"
-			android:summary="Circles will move away from each other.\nExtremly performance intensive"
+			android:summary="Circles will move away from each other.\nExtremely performance intensive"
             android:key="repulsion" 
 			android:defaultValue="false"
 		/>
@@ -166,7 +166,7 @@
 		
 		<CheckBoxPreference
             android:title="Enable rotation"
-			android:summary="Rotate circles (This will only be noticable when an custom texture is used)"
+			android:summary="Rotate circles (This will only be noticeable when an custom texture is used)"
             android:key="rotation" 
 			android:defaultValue="false"
 		/>

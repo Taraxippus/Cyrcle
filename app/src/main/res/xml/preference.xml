@@ -23,7 +23,7 @@
 
 		<Preference
             android:title="Change max FPS"
-			android:summary="Higher framerates will look smoother, but also consume more battery"
+			android:summary="Higher framerate will look smoother, but also consume more battery"
             android:key="fps" 
 		/>
 	

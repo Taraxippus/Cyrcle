@@ -72,7 +72,6 @@ public class CyrcleWallpaperService extends WallpaperService
 		
 		public class CyrcleGLSurfaceView extends GLSurfaceView
 		{		
-			@Override
 			CyrcleGLSurfaceView(Context context)
 			{
 				super(context);

@@ -60,14 +60,14 @@
 
 		<CheckBoxPreference
 			android:title="Enable blur vignette"
-			android:summary="Blur circles at the corners of the screen. The stregth of the blur depends on your blur settings for the circles"
+			android:summary="Blur circles at the corners of the screen. The strength of the blur depends on your blur settings for the circles"
 			android:key="vignetteBlur" 
 			android:defaultValue="false"
 		/>
 	
 		<Preference
 			android:title="Blur vignette strength"
-			android:summary="Change the strengtg of the blur vignette. Also affected by the blur strength for circles"
+			android:summary="Change the strength of the blur vignette. Also affected by the blur strength for circles"
 			android:key="vignetteBlurStrength" 
 			android:dependency="vignetteBlur"
 		/>

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.LruCache;
 import android.util.TypedValue;
@@ -34,7 +35,8 @@ public class WallpaperPreferenceActivity extends Activity
 		layoutBig = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 	
 		glSurfaceView = new GLSurfaceView(this);
-		glSurfaceView.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
+		if (Build.VERSION.SDK_INT >= 21)
+			glSurfaceView.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));
 		glSurfaceView.setPreserveEGLContextOnPause(true);
 		glSurfaceView.setEGLContextClientVersion(2);
 		glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0);

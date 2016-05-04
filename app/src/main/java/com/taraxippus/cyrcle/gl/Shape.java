@@ -138,7 +138,7 @@ public class Shape
 			}
 		}
 		else 
-			throw new RuntimeException("Tried to buffer unitialized shape");
+			throw new RuntimeException("Tried to buffer uninitialized shape");
 	}
 	
 	public boolean initialized()
@@ -154,12 +154,10 @@ public class Shape
 		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo[0]);
 		
 		stride = offset = 0;
-		
-		for (int i = 0; i < attributes.length; ++i)
-		{
-			stride += attributes[i] * 4;
-		}
-		
+
+		for (int attribute : attributes)
+			stride += attribute * 4;
+
 		for (int i = 0; i < attributes.length; ++i)
 		{
 			GLES20.glVertexAttribPointer(i, attributes[i], GLES20.GL_FLOAT, false, stride, offset);
