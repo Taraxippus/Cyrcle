@@ -10,13 +10,13 @@
 		android:title="General">
 
 		<Preference
-            android:title="Change amount"
+            android:title="Circle amount"
 			android:summary="Change amount of circles"
             android:key="count" 
 		/>
 
 		<Preference
-            android:title="Change circle size"
+            android:title="Circle size"
 			android:summary="Change min and max values for the size of the circles"
             android:key="size" 
 		/>
@@ -27,21 +27,21 @@
 		android:title="Colors">
 
 		<Preference
-            android:title="Choose first circle color"
-			android:summary="Choose the first color of the circles"
+            android:title="Primary circle color"
+			android:summary="Choose the primary color of the circles"
             android:key="colorCircle1" 
 			android:defaultValue="#ffff00"
 		/>
 
 		<Preference
-            android:title="Choose second circle color"
-			android:summary="Choose the second color of the circle"
+            android:title="Secondary circle color"
+			android:summary="Choose the secondary color of the circle"
             android:key="colorCircle2" 
 			android:defaultValue="#ffCC00"
 		/>
 
 		<Preference
-            android:title="Change circle alpha"
+            android:title="Circle alpha"
 			android:summary="Change min and max values for the alpha of the circles"
             android:key="alpha" 
 		/>
@@ -73,14 +73,14 @@
 		/>
 
 		<Preference
-            android:title="Change blur amount"
+            android:title="Blur amount"
 			android:summary="Change percentage of circles that should be blurred"
             android:key="blurPercentage" 
 			android:dependency="blur"
 		/>
 
 		<Preference
-            android:title="Change blur strength"
+            android:title="Blur strength"
 			android:summary="Change strength of the blur"
             android:key="blurStrength" 
 			android:dependency="blur"
@@ -99,14 +99,14 @@
 		/>
 
 		<Preference
-            android:title="Change ring amount"
+            android:title="Ring amount"
 			android:summary="Change percentage of circles that should be rings"
             android:key="ringPercentage" 
 			android:dependency="rings"
 		/>
 
 		<Preference
-            android:title="Change ring width"
+            android:title="Stroke width"
 			android:summary="Change width of the rings"
             android:key="ringWidth" 
 			android:dependency="rings"
@@ -118,7 +118,7 @@
 		android:title="Textures">
 		
 		<Preference
-            android:title="Change texture quality"
+            android:title="Texture quality"
 			android:summary="Change quality for default textures"
             android:key="textureQuality" 
 		/>

@@ -70,7 +70,7 @@ public class PresetPreference extends Preference
 
 			this.presets.add(preset);
 			
-			if (((WallpaperPreferenceActivity) getContext()).presetCache.get(preset) != null)
+			if (((WallpaperPreferenceActivity) getContext()).presetCache.get(preset) == null)
 				((WallpaperPreferenceActivity) getContext()).presetCache.put(preset, BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
 		}
 		
