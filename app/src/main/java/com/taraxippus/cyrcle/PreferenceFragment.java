@@ -37,7 +37,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 	public void chooseColor(final String sharedPreference, final String def)
 	{
 		final Preference p = findPreference(sharedPreference);
-
+		
 		if (p == null)
 		{
 			System.err.println("Couldn't find preference: " + sharedPreference);
@@ -55,14 +55,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
 		int colorInt = 0xFF000000 | Color.parseColor(preferences.getString(sharedPreference, def));
 		p.setIcon(getIcon(colorInt));
-		
-//		if (sharedPreference.equals("colorBackground1"))
-//			getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
-//
-//		else if (sharedPreference.equals("colorBackground2") && Build.VERSION.SDK_INT >= 21)
-//			getActivity().getWindow().setStatusBarColor(colorInt);
-//		
-		
+	
 		p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override
@@ -143,13 +136,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 
 								preferences.edit().putString(sharedPreference, "#" + hex.getText().toString()).apply();
 								p.setIcon(getIcon(0xFF000000 | colorInt));
-
-//								if (sharedPreference.equals("colorBackground1"))
-//									getActivity().getActionBar().setBackgroundDrawable(new ColorDrawable(colorInt));
-//								
-//								else if (sharedPreference.equals("colorBackground2") && Build.VERSION.SDK_INT >= 21)
-//									getActivity().getWindow().setStatusBarColor(colorInt);
-									
+								
 								alertDialog.dismiss();
 							}
 						});
