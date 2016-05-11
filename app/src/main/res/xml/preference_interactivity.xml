@@ -26,7 +26,7 @@
 		/>
 
 		<Preference
-            android:title="Change touch sensitivity"
+            android:title="Touch sensitivity"
 			android:summary="Change how sensitive the circles react to a touch"
             android:key="touchSensitivity" 
 			android:dependency="touch"
@@ -53,7 +53,7 @@
 		/>
 
 		<Preference
-            android:title="Change swipe sensitivity"
+            android:title="Swipe sensitivity"
 			android:summary="Change how sensitive the circles react to a swipe"
             android:key="swipeSensitivity" 
 			android:dependency="swipe"

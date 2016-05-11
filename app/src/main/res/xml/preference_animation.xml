@@ -30,13 +30,13 @@
 		android:title="Spawn">
 
 		<Preference
-            android:title="Change horizontal spawn position"
+            android:title="Horizontal spawn position"
 			android:summary="Change min and max values for the spawn position"
             android:key="spawnX" 
 		/>
 	
 		<Preference
-            android:title="Change vertical spawn position"
+            android:title="Vertical spawn position"
 			android:summary="Change min and max values for the spawn position"
             android:key="spawnY" 
 		/>
@@ -49,7 +49,7 @@
 		/>
 	
 		<ListPreference
-            android:title="Choose a shape"
+            android:title="Shape"
 			android:summary="Choose between different spawn shapes. Spawn position will be interpreted accordingly"
             android:key="shape" 
 			android:entries="@array/shape"
@@ -81,14 +81,14 @@
 		/>
 		
 		<Preference
-            android:title="Change fade in duration"
+            android:title="Fade in duration"
 			android:summary="Change how long circles will fade"
             android:key="fadeIn" 
 			android:dependency="fade"
 		/>
 	
 		<Preference
-            android:title="Change fade out duration"
+            android:title="Fade out duration"
 			android:summary="Change how long circles will fade"
             android:key="fadeOut" 
 			android:dependency="fade"
@@ -107,26 +107,26 @@
 		/>
 	
 		<Preference
-            android:title="Change repulsion strength"
+            android:title="Repulsion strength"
 			android:summary="Change how far circles move away from each other"
             android:key="repulsionStrength" 
 			android:dependency="repulsion"
 		/>
 	
 		<Preference
-            android:title="Change animation speed"
+            android:title="Animation speed"
 			android:summary="Change min and max values for the movement speed of the circles"
             android:key="speed" 
 		/>
 
 		<Preference
-            android:title="Change damping"
+            android:title="Damping"
 			android:summary="Change how fast circles will change directions. Is affected by the number of updates per second"
             android:key="damping" 
 		/>
 	
 		<Preference
-            android:title="Change randomness"
+            android:title="Randomness"
 			android:summary="Change how random the movement of the circles should be"
             android:key="randomness" 
 		/>
@@ -146,14 +146,14 @@
 		/>
 
 		<Preference
-            android:title="Change horizontal direction"
+            android:title="Horizontal direction"
 			android:summary="Change min and max values for the horizontal direction"
             android:key="directionX" 
 			android:dependency="direction"
 		/>
 
 		<Preference
-            android:title="Change vertical direction"
+            android:title="Vertical direction"
 			android:summary="Change min and max values for the vertical direction"
             android:key="directionY" 
 			android:dependency="direction"
@@ -172,14 +172,14 @@
 		/>
 	
 		<Preference
-            android:title="Change start rotation"
+            android:title="Start rotation"
 			android:summary="Change min and max values for the start rotation"
             android:key="rotationStart" 
 			android:dependency="rotation"
 		/>
 	
 		<Preference
-            android:title="Change rotation speed"
+            android:title="Rotation speed"
 			android:summary="Change min and max values for the rotation speed"
             android:key="rotationSpeed" 
 			android:dependency="rotation"
@@ -198,7 +198,7 @@
 		/>
 
 		<Preference
-            android:title="Change circle lifetime"
+            android:title="Circle lifetime"
 			android:summary="Change min and max values for the time until a circle dies"
             android:key="lifeTime" 
 			android:dependency="respawn"
@@ -221,7 +221,7 @@
 		/>
 	
 		<Preference
-            android:title="Choose target alpha"
+            android:title="Target alpha"
 			android:summary="Change min and max values for the target alpha"
             android:key="targetAlpha" 
 			android:dependency="alphaTarget"
@@ -244,7 +244,7 @@
 		/>
 
 		<Preference
-            android:title="Choose target color"
+            android:title="Target color"
 			android:summary="Change target color"
             android:key="targetColor" 
 			android:defaultValue="#000000"
@@ -268,7 +268,7 @@
 		/>
 
 		<Preference
-            android:title="Choose target size"
+            android:title="Target size"
 			android:summary="Change min and max values for the target size"
             android:key="targetSize" 
 			android:dependency="sizeTarget"
