@@ -158,6 +158,10 @@ public class Circle
 		{
 			size = startSize = parent.size * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
 			targetSize = parent.targetSize * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
+			
+			offset = parent.size * (renderer.groupOffsetMin + renderer.random.nextFloat() * (renderer.groupOffsetMin + renderer.groupOffsetMax));
+			
+			texture = parent.texture;
 		}
 		else
 		{
@@ -170,13 +174,14 @@ public class Circle
 				targetSize = MAX_SIZE * (renderer.preferences.getFloat("targetSizeMin", 0.0F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("targetSizeMax", 0.02F) - renderer.preferences.getFloat("targetSizeMin", 0.0F)));
 			else
 				targetSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+				
+			texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 4 : 1;
+			texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
+
+			directionVelX = renderer.preferences.getFloat("directionXMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionXMax", 0.75F) - renderer.preferences.getFloat("directionXMin", 0.25F));
+			directionVelY = renderer.preferences.getFloat("directionYMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionYMax", 0.75F) - renderer.preferences.getFloat("directionYMin", 0.25F));
 		}
 		
-		texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 4 : 1;
-		texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
-		
-		directionVelX = renderer.preferences.getFloat("directionXMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionXMax", 0.75F) - renderer.preferences.getFloat("directionXMin", 0.25F));
-		directionVelY = renderer.preferences.getFloat("directionYMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionYMax", 0.75F) - renderer.preferences.getFloat("directionYMin", 0.25F));
 		
 		setTarget();
 		
@@ -264,9 +269,10 @@ public class Circle
 		}
 	}
 	
+	float x, y, s, rot, sin, cos, off, r, g, b, a;
 	public void buffer(FloatBuffer vertices, float partial)
 	{
-		if (!renderer.rotation)
+		if (!renderer.rotation && parent == null)
 		{
 			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX - size * partial - (1 - partial) * prevSize);
 			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY - size * partial - (1 - partial) * prevSize);
@@ -321,8 +327,12 @@ public class Circle
 		}
 		else
 		{
-			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
-			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			radius1 = size * partial + (1 - partial) * prevSize;
+			radius1 = (float) Math.sqrt(2);
+			offset1 = offset * partial + prevOffset * (1 - partial);
+			
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (radius1 - offset1));
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45 - 90) / 180 * Math.PI) * (radius1 - offset1));
 			
 			vertices.put(red * partial + (1 - partial) * prevRed);
 			vertices.put(green * partial + (1 - partial) * prevGreen);
@@ -334,8 +344,8 @@ public class Circle
 			vertices.put(texture);
 
 
-			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
-			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * radius2);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation - 45) / 180 * Math.PI) * radius2);
 			
 			vertices.put(red * partial + (1 - partial) * prevRed);
 			vertices.put(green * partial + (1 - partial) * prevGreen);
@@ -347,8 +357,8 @@ public class Circle
 			vertices.put(texture);
 
 
-			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
-			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * radius1);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 90 + 45) / 180 * Math.PI) * radius1);
 			
 			vertices.put(red * partial + (1 - partial) * prevRed);
 			vertices.put(green * partial + (1 - partial) * prevGreen);
@@ -358,10 +368,10 @@ public class Circle
 			vertices.put(1);
 			vertices.put(1);
 			vertices.put(texture);
+			
 
-
-			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
-			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * (size * partial + (1 - partial) * prevSize));
+			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX + (float) Math.cos((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * radius2);
+			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY + (float) Math.sin((rotation * partial + (1 - partial) * prevRotation + 45) / 180 * Math.PI) * radius2);
 			
 			vertices.put(red * partial + (1 - partial) * prevRed);
 			vertices.put(green * partial + (1 - partial) * prevGreen);
@@ -435,6 +445,8 @@ public class Circle
 		{
 			posX = parent.posX + parent.randomPosX;
 			posY = parent.posY + parent.randomPosY;
+			
+			rotation = parent.rotation;
 		}
 		else
 		{
