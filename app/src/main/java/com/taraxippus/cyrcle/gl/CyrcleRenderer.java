@@ -23,6 +23,7 @@ import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+import android.widget.Toast;
 
 public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences.OnSharedPreferenceChangeListener
 {
@@ -81,8 +82,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public boolean repulsion, respawn, touch, swipe,
 	animateColor, animateAlpha, animateSize,
 	direction, flickering, sudden,
-	spawnShape, animateShape;
-	public float repulsionStrength;
+	spawnShape, animateShape, rotation;
+	public float repulsionStrength, offsetMin, offsetMax,
+	groupSize, groupPercentage, 
+	groupSizeFactorMin, groupSizeFactorMax, groupOffsetMin, groupOffsetMax;
 	public int shape;
 	
 	private final Runnable fpsRunnable = new Runnable()
@@ -168,15 +171,16 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		updateMVP();
 		
 		if (lastWidth == width && lastHeight == height && preferences.getBoolean("animateChange", true) || width == lastHeight && height == lastWidth && preferences.getBoolean("animateRotate", true))
+		{
+			respawn(false);
+			
 			for (int i = 0; circles != null && i < circles.length; ++i)
 			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
-
 				circles[i].setTarget();
 				circles[i].velX += (circles[i].targetX - circles[i].posX) * 2;
 				circles[i].velY += (circles[i].targetY - circles[i].posY) * 2;
 			}
+		}	
 		
 		if (program_circles.initialized() && preferences.getBoolean("vignetteBlur", false))
 		{
@@ -206,14 +210,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		circleCount = (int) preferences.getFloat("count", 50);
 		
 		circles = new Circle[circleCount];
-
-		for (int i = 0; i < circles.length; ++i)
-		{
-			if (circles[i] == null)
-				circles[i] = new Circle(this);
-
-			circles[i].spawn();
-		}
+		respawn();
 		
 		vertices_circle = ByteBuffer.allocateDirect(circleCount * 4 * 9 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		
@@ -538,15 +535,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 		accumulator += delta;
 
+		respawn(false);
+		
 		while (accumulator >= fixedDelta)
 		{
 			int i, i1;
 			float deltaX, deltaY, massSum, distance;
 			for (i = 0; circles != null && i < circles.length; ++i)
 			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
-				
 				if (repulsion)
 					for (i1 = i + 1; i1 < circles.length && circles[i1] != null; ++i1)
 					{
@@ -666,14 +662,15 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public void onOffsetsChanged(float xOffset, float yOffset)
 	{
 		if (swipe)
+		{
+			respawn(false);
+			
 			for (int i = 0; i < circles.length; ++i)
 			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
-
 				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
 				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
 			}
+		}
 		
 		lastXOffset = xOffset;
 		lastYOffset = yOffset;
@@ -690,11 +687,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			float deltaX;
 			float deltaY;
 			
+			respawn(false);
+			
 			for (int i = 0; i < circles.length; ++i)
 			{
-				if (circles[i] == null)
-					circles[i] = new Circle(this);
-
 				deltaX = circles[i].posX + circles[i].randomPosX - x;
 				deltaY = circles[i].posY + circles[i].randomPosY - y;
 				
@@ -708,22 +704,34 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public void respawn()
 	{
+		respawn(true);
+	}
+	
+	public void respawn(boolean force)
+	{
+		if (!force && (circles == null || circles[0] != null))
+			return;
+		
+		int count = (int) (circleCount / ((groupSize - 1) * groupPercentage + 1));
+		
 		for (int i = 0; circles != null && i < circles.length; ++i)
 		{
 			if (circles[i] == null)
 				circles[i] = new Circle(this);
 
+			if (i < count * groupPercentage)
+				circles[i].parent = circles[(int) (i % (count * groupPercentage / groupSize))];
+				
 			circles[i].spawn();
 		}
 	}
 	
 	public void resetTarget()
 	{
+		respawn(false);
+		
 		for (int i = 0; circles != null && i < circles.length; ++i)
 		{
-			if (circles[i] == null)
-				circles[i] = new Circle(this);
-
 			circles[i].setTarget();
 		}
 	}
@@ -748,6 +756,10 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			case "colorBackground1":
 			case "colorBackground2":
 				updateColors = true;
+				break;
+			case "sizeMax":
+				updateTextures = true;
+				respawn();
 				break;
 			case "spawnXMin":
 			case "spawnXMax":
@@ -782,19 +794,47 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			case "sizeTarget":
 			case "targetSizeMin":
 			case "targetSizeMax":
-			case "rotation":
 			case "rotationStartMin":
 			case "rotationStartMax":
 			case "rotationSpeedMin":
 			case "rotationSpeedMax":
 			case "direction":
-			case "sizeMax":
-				updateTextures = true;
-
 				updatePreferences();
-
 				respawn();
 				break;
+				
+			case "rotation":
+				rotation = preferences.getBoolean("rotation", false);
+				respawn();
+				break;
+			case "offsetMin":
+			case "offsetMax":
+				offsetMin = preferences.getFloat("offsetMin", 0.0F);
+				offsetMax = preferences.getFloat("offsetMax", 0.01F);
+				respawn();
+				break;
+				
+			case "groupSize":
+				groupSize = preferences.getFloat("groupSize", 1);
+				respawn();
+				break;
+			case "groupPercentage":
+				groupPercentage = preferences.getFloat("groupPercentage", 20) / 100F;
+				respawn();
+				break;
+			case "groupSizeFactorMin":
+			case "groupSizeFactorMax":
+				groupSizeFactorMin = preferences.getFloat("groupSizeFactorMin", 0.5F);
+				groupSizeFactorMax = preferences.getFloat("groupSizeFactorMax", 0.75F);
+				respawn();
+				break;
+			case "groupOffsetMin":
+			case "groupOffsetMax":
+				groupOffsetMin = preferences.getFloat("groupOffsetMin", 0.75F);
+				groupOffsetMax = preferences.getFloat("groupOffsetMax", 1.25F);
+				respawn();
+				break;
+				
 			case "repulsion":
 				repulsion = preferences.getBoolean("repulsion", false);
 				break;
@@ -859,6 +899,17 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		spawnShape = preferences.getBoolean("spawnShape", false);
 		animateShape = preferences.getBoolean("animateShape", false);
 		shape = Arrays.binarySearch(context.getResources().getStringArray(R.array.shape), preferences.getString("shape", "Circle"));
+		
+		rotation = preferences.getBoolean("rotation", false);
+		offsetMin = preferences.getFloat("offsetMin", 0.0F);
+		offsetMax = preferences.getFloat("offsetMax", 0.01F);
+		
+		groupSize = preferences.getFloat("groupSize", 1F);
+		groupPercentage = preferences.getFloat("groupPercentage", 20F) / 100F;
+		groupSizeFactorMin = preferences.getFloat("groupSizeFactorMax", 0.5F);
+		groupSizeFactorMax = preferences.getFloat("groupSizeFactorMax", 0.75F);
+		groupOffsetMin = preferences.getFloat("groupOffsetMin", 0.75F);
+		groupOffsetMax = preferences.getFloat("groupOffsetMax", 1.25F);
 		
 		maxFPS = (int) preferences.getFloat("fps", 45);
 		fixedDelta = 1F / preferences.getFloat("ups", 45);

@@ -166,7 +166,7 @@
 		
 		<CheckBoxPreference
             android:title="Enable rotation"
-			android:summary="Rotate circles (This will only be noticeable when an custom texture is used)"
+			android:summary="Rotate circles"
             android:key="rotation" 
 			android:defaultValue="false"
 		/>
@@ -185,6 +185,13 @@
 			android:dependency="rotation"
 		/>
 		
+		<Preference
+            android:title="Offset"
+			android:summary="Change min and max values for the offset of the rotation center"
+            android:key="offset" 
+			android:dependency="rotation"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 

@@ -41,7 +41,8 @@ public class PreferenceAnimation extends PreferenceFragment
 
 		chooseMinMax("rotationStart", -180, 180, 1, -180, 180);
 		chooseMinMax("rotationSpeed", -180, 180, 1, -45, 45);
-
+		chooseMinMax("offset", 0, 2, 200, 0F, 0.01F);
+		
 		chooseMinMax("lifeTime", 0, 120, 8, 30F, 60F);
 		chooseMinMax("targetAlpha", 0, 1, 100, 0.0F, 0.01F);
 		chooseColor("targetColor", "#000000");
