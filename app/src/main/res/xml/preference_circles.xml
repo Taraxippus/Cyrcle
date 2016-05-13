@@ -20,7 +20,7 @@
 			android:summary="Change min and max values for the size of the circles"
             android:key="size" 
 		/>
-
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 
@@ -58,6 +58,35 @@
 			android:summary="Color circles in an mixed color"
             android:key="interpolate" 
 			android:defaultValue="true"
+		/>
+
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Groups">
+
+		<Preference
+            android:title="Group size"
+			android:summary="Spawn circles in groups of a certain size"
+            android:key="groupSize" 
+		/>
+
+		<Preference
+            android:title="Group amount"
+			android:summary="Change percentage of circles that spawn in groups"
+            android:key="groupPercentage" 
+		/>
+
+		<Preference
+            android:title="Group size factor"
+			android:summary="Change how much smaller child circles should be"
+            android:key="groupSizeFactor" 
+		/>
+	
+		<Preference
+            android:title="Group offset"
+			android:summary="Change how far away circles in a group are from eachother"
+            android:key="groupOffset" 
 		/>
 
 	</PreferenceCategory>

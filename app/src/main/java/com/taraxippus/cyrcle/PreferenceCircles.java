@@ -102,7 +102,11 @@ public class PreferenceCircles extends PreferenceFragment
 		chooseColor("colorCircle2", "#ffcc00");
 		chooseMinMax("alpha", 0, 1, 100, 0.25F, 0.75F);
 		chooseValue("textureQuality", "quality", "", 0.25F, 2F, 4, 1);
-
+		chooseValue("groupSize", "group size", "", 1F, 10F, 1, 1);
+		chooseValue("groupPercentage", "percentage", "%", 1F, 100F, 1, 20);
+		chooseMinMax("groupSizeFactor", 0, 2, 100, 0.5F, 0.75F);
+		chooseMinMax("groupOffset", 0, 2, 100, 0.75F, 1.25F);
+		
 		findPreference("pickCircleTexture").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
 			{
 				@Override

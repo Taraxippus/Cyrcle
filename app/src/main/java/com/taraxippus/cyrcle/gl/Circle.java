@@ -8,12 +8,13 @@ public class Circle
 	public static final float MAX_SIZE = 0.2F;
 	
 	public final CyrcleRenderer renderer;
+	public Circle parent;
 	
 	float posX, posY, prevPosX, prevPosY;
 	float randomPosX, randomPosY, prevRandomPosX, prevRandomPosY;
 	float targetX, targetY;
 	float velX, velY, directionVelX, directionVelY;
-	float rotation, rotationVel, prevRotation;
+	float rotation, rotationVel, prevRotation, prevOffset, offset;
 	float red, green, blue, alpha;
 	float prevRed, prevGreen, prevBlue, prevAlpha;
 	float startRed, startGreen, startBlue, startAlpha;
@@ -35,37 +36,48 @@ public class Circle
 	
 	public void spawn()
 	{
-		if (renderer.spawnShape)
+		if (parent == this)
+			parent = null;
+			
+		if (parent == null)
 		{
-			if (renderer.shape == 0)
+			if (renderer.spawnShape)
 			{
-				float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
-				posX = renderer.preferences.getFloat("spawnXMax", 1) * renderer.random.nextFloat() * (float) Math.cos(angle);
-				posY = renderer.preferences.getFloat("spawnYMax", 1) * renderer.random.nextFloat() * (float) Math.sin(angle);
-			}
-			else if (renderer.shape == 1)
-			{
-				float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
-				posX = ((renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * 0.5F + 0.5F) * (float) Math.cos(angle);
-				posY = ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F) * (float) Math.sin(angle);
-			}
-			else if (renderer.shape == 2)
-			{
-				float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
-				posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
-				posY = (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+				if (renderer.shape == 0)
+				{
+					float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
+					posX = renderer.preferences.getFloat("spawnXMax", 1) * renderer.random.nextFloat() * (float) Math.cos(angle);
+					posY = renderer.preferences.getFloat("spawnYMax", 1) * renderer.random.nextFloat() * (float) Math.sin(angle);
+				}
+				else if (renderer.shape == 1)
+				{
+					float angle = renderer.random.nextFloat() * 2 * (float) Math.PI;
+					posX = ((renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * 0.5F + 0.5F) * (float) Math.cos(angle);
+					posY = ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F) * (float) Math.sin(angle);
+				}
+				else if (renderer.shape == 2)
+				{
+					float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
+					posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
+					posY = (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+				}
+				else
+				{
+					float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
+					posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
+					posY = (renderer.random.nextBoolean() ? 1 : -1) * (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + 3 * renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+				}
 			}
 			else
 			{
-				float x = renderer.random.nextFloat() * 2 * (float) Math.PI;
-				posX = (x / (float) Math.PI - 1) * ((float) renderer.width / renderer.height);
-				posY = (renderer.random.nextBoolean() ? 1 : -1) * (float) Math.sin(x * (renderer.preferences.getFloat("spawnXMax", 1) * 0.5F + 0.5F) + 3 * renderer.time * (renderer.preferences.getFloat("spawnXMin", -1) * 0.5F + 0.5F)) * ((renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1))) * 0.5F + 0.5F);
+				posX = (renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * ((float) renderer.width / renderer.height);
+				posY = renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1));
 			}
 		}
 		else
 		{
-			posX = (renderer.preferences.getFloat("spawnXMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnXMax", 1) - renderer.preferences.getFloat("spawnXMin", -1))) * ((float) renderer.width / renderer.height);
-			posY = renderer.preferences.getFloat("spawnYMin", -1) + renderer.random.nextFloat() * (renderer.preferences.getFloat("spawnYMax", 1) - renderer.preferences.getFloat("spawnYMin", -1));
+			posX = parent.posX + parent.randomOffsetX;
+			posY = parent.posY + parent.randomOffsetY;
 		}
 		
 		velX = 0;
@@ -73,10 +85,12 @@ public class Circle
 		
 		rotation = 0;
 		rotationVel = 0;
-		if (renderer.preferences.getBoolean("rotation", false))
+		offset = 0;
+		if (renderer.rotation)
 		{
 			rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180)) * size;
 			rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45)) * size;
+			offset = renderer.offsetMin + renderer.random.nextFloat() * (renderer.offsetMax - renderer.offsetMin);
 		}
 		
 		int color1 = Color.parseColor(renderer.preferences.getString("colorCircle1", "#ffff00"));
@@ -140,15 +154,23 @@ public class Circle
 		else
 			targetAlpha = alphaMin + renderer.random.nextFloat() * (alphaMax - alphaMin);
 		
-		float sizeMin = renderer.preferences.getFloat("sizeMin", 0.25F);
-		float sizeMax = renderer.preferences.getFloat("sizeMax", 0.75F);
-
-		size = startSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
-		
-		if (renderer.preferences.getBoolean("sizeTarget", false))
-			targetSize = MAX_SIZE * (renderer.preferences.getFloat("targetSizeMin", 0.0F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("targetSizeMax", 0.02F) - renderer.preferences.getFloat("targetSizeMin", 0.0F)));
+		if (parent != null)
+		{
+			size = startSize = parent.size * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
+			targetSize = parent.targetSize * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
+		}
 		else
-			targetSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+		{
+			float sizeMin = renderer.preferences.getFloat("sizeMin", 0.25F);
+			float sizeMax = renderer.preferences.getFloat("sizeMax", 0.75F);
+
+			size = startSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+
+			if (renderer.preferences.getBoolean("sizeTarget", false))
+				targetSize = MAX_SIZE * (renderer.preferences.getFloat("targetSizeMin", 0.0F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("targetSizeMax", 0.02F) - renderer.preferences.getFloat("targetSizeMin", 0.0F)));
+			else
+				targetSize = MAX_SIZE * (sizeMin + renderer.random.nextFloat() * (sizeMax - sizeMin));
+		}
 		
 		texture = renderer.preferences.getBoolean("rings", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("ringPercentage", 45F) / 100F ? 4 : 1;
 		texture += renderer.preferences.getBoolean("blur", true) && renderer.random.nextFloat() < renderer.preferences.getFloat("blurPercentage", 45F) / 100F  ? 1 : 0;
@@ -182,6 +204,7 @@ public class Circle
 		prevRandomPosX = randomPosX;
 		prevRandomPosY = randomPosY;
 		prevRotation = rotation;
+		prevOffset = offset;
 		prevRed = red;
 		prevGreen = green;
 		prevBlue = blue;
@@ -243,7 +266,7 @@ public class Circle
 	
 	public void buffer(FloatBuffer vertices, float partial)
 	{
-		if (rotation == 0)
+		if (!renderer.rotation)
 		{
 			vertices.put(posX * partial + (1 - partial) * prevPosX + randomPosX * partial + (1 - partial) * prevRandomPosX - size * partial - (1 - partial) * prevSize);
 			vertices.put(posY * partial + (1 - partial) * prevPosY + randomPosY * partial + (1 - partial) * prevRandomPosY - size * partial - (1 - partial) * prevSize);
@@ -359,6 +382,7 @@ public class Circle
 		prevRandomPosX = randomPosX;
 		prevRandomPosY = randomPosY;
 		prevRotation = rotation;
+		prevOffset = offset;
 		prevRed = red;
 		prevGreen = green;
 		prevBlue = blue;
@@ -407,51 +431,59 @@ public class Circle
 			lifeTime -= delta;
 		}
 	
-		deltaX = targetX - posX;
-		deltaY = targetY - posY;
-		length = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-		
-		if (length < 0.15F)
-			setTarget();
-		
-		velX = velX * (float) Math.pow(0.95F, delta * 60) + deltaX / length / size * 0.00025F * speed;
-		velY = velY * (float) Math.pow(0.95F, delta * 60) + deltaY / length / size * 0.00025F * speed;
-		
-		posX += velX * delta;
-		posY += velY * delta;
-		
-		rotation += rotationVel * delta;
-		
-		if (renderer.direction)
+		if (parent != null)
 		{
-			posX += 0.5F * directionVelX * delta;
-			posY += 0.5F * directionVelY * delta;
+			posX = parent.posX + parent.randomPosX;
+			posY = parent.posY + parent.randomPosY;
+		}
+		else
+		{
+			deltaX = targetX - posX;
+			deltaY = targetY - posY;
+			length = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+			if (length < 0.15F)
+				setTarget();
+
+			velX = velX * (float) Math.pow(0.95F, delta * 60) + deltaX / length / size * 0.00025F * speed;
+			velY = velY * (float) Math.pow(0.95F, delta * 60) + deltaY / length / size * 0.00025F * speed;
+
+			posX += velX * delta;
+			posY += velY * delta;
+
+			rotation += rotationVel * delta;
+
+			if (renderer.direction)
+			{
+				posX += 0.5F * directionVelX * delta;
+				posY += 0.5F * directionVelY * delta;
+			}
+
+			if (posX + randomPosX < (float) -renderer.width / renderer.height - size)
+			{
+				posX += (float) renderer.width / renderer.height * 2 + size * 2;
+				prevPosX += (float) renderer.width / renderer.height * 2 + size * 2;
+			}
+
+			if (posX + randomPosX > (float) renderer.width / renderer.height + size)
+			{
+				posX -=  (float) renderer.width / renderer.height * 2 + size * 2;
+				prevPosX -=  (float) renderer.width / renderer.height * 2 + size * 2;
+			}
+
+			if (posY + randomPosY < -1 - size)
+			{
+				posY += 2 + size * 2;
+				prevPosY += 2 + size * 2;
+			}
+
+			if (posY + randomPosY > 1 + size)
+			{
+				posY -= 2 + size * 2;
+				prevPosY -= 2 + size * 2;
+			}
 		}
 		
-		if (posX + randomPosX < (float) -renderer.width / renderer.height - size)
-		{
-			posX += (float) renderer.width / renderer.height * 2 + size * 2;
-			prevPosX += (float) renderer.width / renderer.height * 2 + size * 2;
-		}
-			
-		if (posX + randomPosX > (float) renderer.width / renderer.height + size)
-		{
-			posX -=  (float) renderer.width / renderer.height * 2 + size * 2;
-			prevPosX -=  (float) renderer.width / renderer.height * 2 + size * 2;
-		}
-			
-		if (posY + randomPosY < -1 - size)
-		{
-			posY += 2 + size * 2;
-			prevPosY += 2 + size * 2;
-		}
-			
-		if (posY + randomPosY > 1 + size)
-		{
-			posY -= 2 + size * 2;
-			prevPosY -= 2 + size * 2;
-		}
-			
 		randomPosX = randomPosX * 0.9F + (float) Math.cos(time * randomSpeedX * 2 + randomOffsetX) * randomScaleX * 0.015F;
 		randomPosY = randomPosY * 0.9F + (float) Math.cos(time * randomSpeedY * 2 + randomOffsetY) * randomScaleY * 0.015F;
 		
