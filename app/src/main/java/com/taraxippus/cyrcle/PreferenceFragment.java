@@ -1,11 +1,14 @@
 package com.taraxippus.cyrcle;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
@@ -15,8 +18,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Locale;
+import android.animation.Keyframe;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
 {
@@ -32,6 +39,27 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 	{
 		super.onCreate(savedInstanceState);
 		preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+	}
+	
+	public void addBackButton()
+	{
+		final Preference p = findPreference("back");
+		
+		if (p == null)
+		{
+			System.err.println("Couldn't find back button");
+			return;
+		}
+		
+		p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference p1)
+				{
+					getFragmentManager().popBackStack();
+					return true;
+				}
+			});
 	}
 	
 	public void chooseColor(final String sharedPreference, final String def)
@@ -520,4 +548,5 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 				}
 			});
 	}
+	
 }

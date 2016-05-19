@@ -87,7 +87,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	groupSize, groupPercentage, 
 	groupSizeFactorMin, groupSizeFactorMax, groupOffsetMin, groupOffsetMax;
 	public int shape;
-	
+	public float circleRatio = 1, ringRatio = 1;	
 	private final Runnable fpsRunnable = new Runnable()
 	{
 		@Override
@@ -264,6 +264,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 					}
 					
+				circleRatio = bitmap.getWidth() / (float) bitmap.getHeight();
 				size = Math.min(bitmap.getWidth(), bitmap.getHeight());
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
@@ -287,6 +288,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			}
 			else
 			{
+				circleRatio = 1;
+				
 				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * preferences.getFloat("textureQuality", 1));
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
@@ -328,6 +331,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 						bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 					}
 				
+				ringRatio = bitmap.getWidth() / (float) bitmap.getHeight();
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				int width = bitmap.getWidth();
 				int height = bitmap.getHeight();
@@ -349,6 +353,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			}
 			else
 			{
+				ringRatio = 1;
+				
 				size = (int) (height * preferences.getFloat("sizeMax", 0.75F) * Circle.MAX_SIZE * preferences.getFloat("textureQuality", 1));
 				blurSize = Math.max(1, (int) (size * preferences.getFloat("blurStrength", 0.1F)));
 				
