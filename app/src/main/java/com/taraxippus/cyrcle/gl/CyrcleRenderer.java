@@ -38,6 +38,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	
 	public final Program program_background = new Program();
 	public final Program program_circles = new Program();
+	public final Program program_bars = new Program();
 	public final Program program_post = new Program();
 	
 	public final Program program_circle_texture = new Program();
@@ -62,11 +63,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	final float[] matrix_mvp = new float[16];
 	
 	int circleCount = 50;
+	int barCount = 10;
 	Circle[] circles = new Circle[circleCount];
-	FloatBuffer vertices_circle;
+	Bar[] bars = new Bar[circleCount];
+	FloatBuffer vertices_circle, verttices_bars;
 	final int[] ibo_circle = new int[1];
+	final int[] ibo_bars = new int[1];
 	
-	private boolean updateColors, updateCircleShape, updateTextures,
+	private boolean updateColors, updateCircleShape, updateBarShape, updateTextures,
 	updateVignette, updateVignetteBlur, updateCircleProgram, updateBitmap;
 	
 	private long lastTime;
@@ -115,6 +119,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 		program_background.init(context, R.raw.vertex_fullscreen, R.raw.fragment_background, "a_Position");
 		program_post.init(context, R.raw.vertex_fullscreen, R.raw.fragment_vignette, "a_Position");
+		//program_post.init(context, R.raw.vertex_bars, R.raw.fragment_bars, "a_Position", "a_Color");
 		
 		program_circle_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_circle_texture, "a_Position");
 		program_ring_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_ring_texture, "a_Position");
@@ -712,17 +717,19 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		if (!force && (circles == null || circles[0] != null))
 			return;
 		
-		int count = (int) (circleCount / ((groupSize - 1) * groupPercentage + 1));
+		int count = (int) (circleCount / ((1 - groupSize) * groupPercentage + 1));
 		
 		for (int i = 0; circles != null && i < circles.length; ++i)
 		{
 			if (circles[i] == null)
-				circles[i] = new Circle(this);
+				circles[i] = new Circle(this, i);
 
-			if (i < count * groupPercentage)
-				circles[i].parent = circles[(int) (i % (count * groupPercentage / groupSize))];
+			if (i < count * groupPercentage * groupSize)
+				circles[i].parent = circles[(int) ((int) (i / groupSize) * groupSize)];
+			else 
+				circles[i].parent = null;
 				
-			circles[i].spawn();
+			circles[i].spawn(false);
 		}
 	}
 	
