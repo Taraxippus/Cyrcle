@@ -101,6 +101,14 @@
 			android:defaultValue="true"
 		/>
 
+		<CheckBoxPreference
+            android:title="Enable additive blur"
+			android:summary="Add blur to default texture"
+            android:key="blurAdd" 
+			android:defaultValue="false"
+			android:dependency="blur"
+		/>
+	
 		<Preference
             android:title="Blur amount"
 			android:summary="Change percentage of circles that should be blurred"

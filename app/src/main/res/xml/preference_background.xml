@@ -23,7 +23,28 @@
 			android:key="colorBackground2" 
 			android:defaultValue="#ff4400"
 		/>
+	
+		<CheckBoxPreference
+			android:title="Enable background image"
+			android:summary="Use an image instead of a gradient as the background"
+			android:key="backgroundTexture" 
+			android:defaultValue="false"
+		/>
+		<com.taraxippus.cyrcle.PickImagePreference
+			android:title="Pick background image"
+			android:summary="Choose background image from storage"
+			android:key="backgroundTextureFile" 
+			android:dependency="backgroundTexture"
+		/>
 
+		<CheckBoxPreference
+			android:title="Enable background swipe animation"
+			android:summary="Move image when changing between homescreens"
+			android:key="backgroundTextureSwipe" 
+			android:defaultValue="true"
+			android:dependency="backgroundTexture"
+		/>
+	
 	</PreferenceCategory>
 	
 	<PreferenceCategory 

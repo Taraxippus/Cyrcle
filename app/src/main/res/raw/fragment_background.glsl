@@ -8,5 +8,5 @@ varying vec2 v_UV;
 
 void main()
 {
-	gl_FragColor = u_Color1 * v_UV.y + u_Color2 * (1.0 - v_UV.y);
+	gl_FragColor = u_Color2 * v_UV.y + u_Color1 * (1.0 - v_UV.y);
 }

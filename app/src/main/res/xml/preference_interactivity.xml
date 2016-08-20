@@ -61,4 +61,15 @@
 
 	</PreferenceCategory>
 
+	<PreferenceCategory 
+		android:title="Tap to kill">
+
+		<CheckBoxPreference
+            android:title="Tap circles to kill them"
+			android:summary="Enable tap to kill. Collision might not be accurate when a custom texture is used"
+            android:key="tap" 
+			android:defaultValue="true"
+		/>
+
+	</PreferenceCategory>
 </PreferenceScreen>
