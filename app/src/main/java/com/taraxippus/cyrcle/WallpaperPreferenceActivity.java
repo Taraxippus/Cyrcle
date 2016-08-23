@@ -1,11 +1,14 @@
 package com.taraxippus.cyrcle;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.util.LruCache;
 import android.util.TypedValue;
 import android.view.Display;
@@ -13,6 +16,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.taraxippus.cyrcle.gl.CyrcleRenderer;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import android.preference.PreferenceManager;
 
 public class WallpaperPreferenceActivity extends Activity
 {
@@ -71,6 +78,58 @@ public class WallpaperPreferenceActivity extends Activity
 		};
 	}
 
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) 
+	{
+		if (resultCode != Activity.RESULT_OK)
+		{
+			super.onActivityResult(requestCode, resultCode, data);
+			return;
+		}
+
+		final Uri content_describer = data.getData();
+		final String key = PickImagePreference.pickImageKeys.get(requestCode);
+
+		System.out.println(content_describer + " " + key + " " + requestCode);
+
+		InputStream in = null;
+		OutputStream out = null; 
+
+		try 
+		{
+			in = getContentResolver().openInputStream(content_describer);
+			out = new FileOutputStream(getFilesDir().getPath() + key);
+
+			byte[] buffer = new byte[1024];
+			int len;
+			while ((len = in.read(buffer)) != -1) 
+			{
+				out.write(buffer, 0, len);
+			}
+
+			PreferenceManager.getDefaultSharedPreferences(this).edit().putString(key, content_describer.getPath()).commit();
+		} 
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		} 
+		finally 
+		{
+			try
+			{
+				if (in != null)
+					in.close();
+				if (out != null)
+					out.close();
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+
+		}
+	}
+	
 	@Override
 	public void onBackPressed()
 	{

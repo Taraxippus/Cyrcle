@@ -17,15 +17,7 @@ public class PreferenceAnimation extends PreferenceFragment
 
 		addPreferencesFromResource(R.xml.preference_animation);
 
-		findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
-				@Override
-				public boolean onPreferenceClick(Preference p1)
-				{
-					getFragmentManager().popBackStack();
-					return true;
-				}
-			});
+		addBackButton();
 
 		chooseMinMax("spawnX", -1, 1, 100, -1, 1);
 		chooseMinMax("spawnY", -1, 1, 100, -1, 1);
@@ -34,7 +26,7 @@ public class PreferenceAnimation extends PreferenceFragment
 		
 		chooseValue("repulsionStrength", "strength", "", 0, 1, 100, 0.5F);
 		chooseMinMax("speed", 0, 1, 100, 0.25F, 0.75F);
-		chooseValue("damping", "damping", "", 0, 5, 100, 0.05F);
+		chooseValue("damping", "damping", "", 0, 1, 100, 0.05F);
 		chooseMinMax("randomness", 0, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("directionX", -1, 1, 100, 0.25F, 0.75F);
 		chooseMinMax("directionY", -1, 1, 100, 0.25F, 0.75F);

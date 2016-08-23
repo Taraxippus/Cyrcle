@@ -100,6 +100,13 @@
 		android:title="Motion">
 		
 		<CheckBoxPreference
+            android:title="Loop screen"
+			android:summary="Circles will reappear on the other side if they disappear on one side of the screen"
+            android:key="loop" 
+			android:defaultValue="true"
+		/>
+		
+		<CheckBoxPreference
             android:title="Enable repulsion"
 			android:summary="Circles will move away from each other.\nExtremely performance intensive"
             android:key="repulsion" 
@@ -121,7 +128,7 @@
 
 		<Preference
             android:title="Damping"
-			android:summary="Change how fast circles will change directions. Is affected by the number of updates per second"
+			android:summary="Change how fast circles will change directions. This preference is affected by the number of updates per second"
             android:key="damping" 
 		/>
 	

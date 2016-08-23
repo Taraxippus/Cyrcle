@@ -101,6 +101,14 @@
 			android:defaultValue="true"
 		/>
 
+		<CheckBoxPreference
+            android:title="Enable additive blur"
+			android:summary="Add blur to default texture"
+            android:key="blurAdd" 
+			android:defaultValue="false"
+			android:dependency="blur"
+		/>
+	
 		<Preference
             android:title="Blur amount"
 			android:summary="Change percentage of circles that should be blurred"
@@ -159,10 +167,10 @@
 			android:defaultValue="false"
 		/>
 
-		<Preference
+		<com.taraxippus.cyrcle.PickImagePreference
             android:title="Pick custom texture"
 			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
-            android:key="pickCircleTexture" 
+            android:key="circleTextureFile" 
 			android:defaultValue="false"
 			android:dependency="circleTexture"
 		/>
@@ -175,10 +183,10 @@
 			android:dependency="rings"
 		/>
 
-		<Preference
+		<com.taraxippus.cyrcle.PickImagePreference
             android:title="Pick custom texture"
 			android:summary="Choose an image from storage. Works best with large, white, transparent and quadratic pictures"
-            android:key="pickRingTexture" 
+            android:key="ringTextureFile" 
 			android:defaultValue="false"
 			android:dependency="ringTexture"
 		/>

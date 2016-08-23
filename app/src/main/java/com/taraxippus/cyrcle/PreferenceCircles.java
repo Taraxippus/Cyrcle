@@ -16,64 +16,6 @@ public class PreferenceCircles extends PreferenceFragment
 	{
 		super();
 	}
-	
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) 
-	{
-		switch (requestCode)
-		{
-			case 0:		
-			case 1:
-				if (resultCode != Activity.RESULT_OK)
-					break;
-
-				Uri content_describer = data.getData();
-
-				InputStream in = null;
-				OutputStream out = null; 
-
-				try 
-				{
-					in = getActivity().getContentResolver().openInputStream(content_describer);
-					out = new FileOutputStream(getActivity().getFilesDir().getPath() + (requestCode == 0 ? "circleTextureFile" : "ringTextureFile"));
-
-					byte[] buffer = new byte[1024];
-					int len;
-					while ((len = in.read(buffer)) != -1) 
-					{
-						out.write(buffer, 0, len);
-					}
-
-					PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(requestCode == 0 ? "circleTextureFile" : "ringTextureFile", content_describer.getPath()).commit();
-				} 
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				} 
-				finally 
-				{
-					try
-					{
-						if (in != null)
-							in.close();
-						if (out != null)
-							out.close();
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
-
-				}
-
-				return;
-			default:
-				break;
-		}
-
-		super.onActivityResult(requestCode, resultCode, data);
-	}
-
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -82,15 +24,7 @@ public class PreferenceCircles extends PreferenceFragment
 
 		addPreferencesFromResource(R.xml.preference_circles);
 
-		findPreference("back").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
-			{
-				@Override
-				public boolean onPreferenceClick(Preference p1)
-				{
-					getFragmentManager().popBackStack();
-					return true;
-				}
-			});
+		addBackButton();
 
 		chooseValue("count", "Amount", "", 1, 1000, 1, 10);
 		chooseMinMax("size", 0, 1, 100, 0.25F, 0.75F);
@@ -106,31 +40,5 @@ public class PreferenceCircles extends PreferenceFragment
 		chooseValue("groupPercentage", "percentage", "%", 1F, 100F, 1, 20);
 		chooseMinMax("groupSizeFactor", 0, 2, 100, 0.5F, 0.75F);
 		chooseMinMax("groupOffset", 0, 2, 100, 0.75F, 1.25F);
-		
-		findPreference("pickCircleTexture").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
-			{
-				@Override
-				public boolean onPreferenceClick(Preference preference)
-				{
-					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/*");
-
-					startActivityForResult(i, 0);
-					return true;
-				}
-			});
-
-		findPreference("pickRingTexture").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
-			{
-				@Override
-				public boolean onPreferenceClick(Preference preference)
-				{
-					Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-					i.setType("image/*");
-
-					startActivityForResult(i, 1);
-					return true;
-				}
-			});
 	}
 }
