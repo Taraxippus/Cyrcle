@@ -1,10 +1,10 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
+	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:orientation="vertical">
 
 	<LinearLayout 
-		android:layout_width="fill_parent"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:orientation="vertical"
 		android:paddingLeft="20dp"
@@ -23,7 +23,7 @@
 	
 		<LinearLayout
 			android:paddingTop="16dp"
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">
 
@@ -35,14 +35,14 @@
 			<SeekBar	
 				android:id="@+id/red"
 				android:paddingBottom="16dp"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:foreground="#ff0000"
 				android:max="255"/>
 		</LinearLayout>
 
 		<LinearLayout
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">
 
@@ -54,14 +54,14 @@
 			<SeekBar
 				android:id="@+id/green"
 				android:paddingBottom="16dp"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:foreground="#00ff00"
 				android:max="255"/>
 		</LinearLayout>
 
 		<LinearLayout
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">
 
@@ -73,7 +73,7 @@
 			<SeekBar
 				android:id="@+id/blue"
 				android:paddingBottom="16dp"
-				android:layout_width="fill_parent"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:foreground="#0000ff"
 				android:max="255"/>
@@ -87,7 +87,7 @@
 
 		<LinearLayout
 			android:paddingTop="4dp"
-			android:layout_width="fill_parent"
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal">
 

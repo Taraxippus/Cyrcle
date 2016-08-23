@@ -19,27 +19,27 @@
 			android:weightSum="1">
 
 			<TextView
+				android:id="@+id/title_a"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
-				android:text="Min:"/>
+				android:text="A:"/>
 
 			<SeekBar	
-				android:id="@+id/slider_min"
+				android:id="@+id/slider_a"
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:layout_weight="1"
-				android:layout_gravity="center"
-			/>
-		
+				android:layout_gravity="center" />
+
 			<EditText
-				android:id="@+id/text_min"
+				android:id="@+id/text_a"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:digits="0123456789.-"
 				android:inputType="numberDecimal"
 				android:imeOptions="actionGo" />
-			
+
 		</LinearLayout>
 
 		<LinearLayout
@@ -49,29 +49,57 @@
 			android:weightSum="1">
 
 			<TextView
+				android:id="@+id/title_b"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_gravity="center"
-				android:text="Max:" />
+				android:text="B:" />
 
 			<SeekBar
-				android:id="@+id/slider_max"
+				android:id="@+id/slider_b"
 				android:layout_width="0dp"
 				android:layout_height="wrap_content"
 				android:layout_weight="1"
-				android:layout_gravity="center"
-			/>
-		
+				android:layout_gravity="center" />
+
 			<EditText
-				android:id="@+id/text_max"
+				android:id="@+id/text_b"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:digits="0123456789.-"
 				android:inputType="numberDecimal"
 				android:imeOptions="actionGo" />
-			
+
 		</LinearLayout>
+		
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:weightSum="1">
 
+			<TextView
+				android:id="@+id/title_c"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center"
+				android:text="C:" />
+
+			<SeekBar
+				android:id="@+id/slider_c"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:layout_gravity="center" />
+
+			<EditText
+				android:id="@+id/text_c"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:digits="0123456789.-"
+				android:inputType="numberDecimal"
+				android:imeOptions="actionGo" />
+
+		</LinearLayout>
 	</LinearLayout>
-
 </ScrollView>

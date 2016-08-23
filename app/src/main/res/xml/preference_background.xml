@@ -30,10 +30,18 @@
 			android:key="backgroundTexture" 
 			android:defaultValue="false"
 		/>
+	
 		<com.taraxippus.cyrcle.PickImagePreference
 			android:title="Pick background image"
 			android:summary="Choose background image from storage"
 			android:key="backgroundTextureFile" 
+			android:dependency="backgroundTexture"
+		/>
+	
+		<Preference
+			android:title="Change colors"
+			android:summary="Recolor background image"
+			android:key="backgroundTextureColor" 
 			android:dependency="backgroundTexture"
 		/>
 

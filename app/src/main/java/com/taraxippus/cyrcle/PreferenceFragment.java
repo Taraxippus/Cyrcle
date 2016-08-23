@@ -366,10 +366,8 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
-								if (text_min.hasFocus())
-									text_min.onEditorAction(EditorInfo.IME_ACTION_GO);
-								if (text_max.hasFocus())
-									text_max.onEditorAction(EditorInfo.IME_ACTION_GO);
+								text_min.onEditorAction(EditorInfo.IME_ACTION_GO);
+								text_max.onEditorAction(EditorInfo.IME_ACTION_GO);
 								
 								alertDialog.dismiss();
 							}
@@ -495,8 +493,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
-								if (text_value.hasFocus())
-									text_value.onEditorAction(EditorInfo.IME_ACTION_GO);
+								text_value.onEditorAction(EditorInfo.IME_ACTION_GO);
 								
 								alertDialog.dismiss();
 							}
@@ -528,6 +525,241 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							public void onClick(View p1)
 							{
 								slider.setProgress((int) ((def - min) * scale));
+							}
+						});
+
+					return true;
+				}
+			});
+	}
+	
+	public void chooseValues(final String key, final String title, final String titleA, final String titleB, final String titleC, final float min, final float max, final int scale, final float defA, final float defB, final float defC)
+	{
+		final Preference p = findPreference(key);
+
+		if (p == null)
+		{
+			System.err.println("Couldn't find preference: " + key);
+			return;
+		}
+
+		final String summary = p.getSummary().toString();
+
+		p.setSummary(summary + "\nCurrent: "
+					 + (int) (preferences.getFloat(key + "A", defA) * 100) / 100F
+					 + " // " + (int) (preferences.getFloat(key + "B", defB) * 100) / 100F
+					 + " // " + (int) (preferences.getFloat(key + "C", defC) * 100) / 100F);
+
+		p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+			{
+				@Override
+				public boolean onPreferenceClick(Preference p1)
+				{
+					final float lastA = preferences.getFloat(key + "A", defA);
+					final float lastB = preferences.getFloat(key + "B", defB);
+					final float lastC = preferences.getFloat(key + "C", defC);
+					
+					final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+					alertDialog.setTitle("Change " + title);
+
+					final View v = getActivity().getLayoutInflater().inflate(R.layout.minmax, null);
+					alertDialog.setView(v);
+
+					((TextView) v.findViewById(R.id.title_a)).setText(titleA + ":");
+					((TextView) v.findViewById(R.id.title_b)).setText(titleB + ":");
+					((TextView) v.findViewById(R.id.title_c)).setText(titleC + ":");
+					
+					final SeekBar slider_a = (SeekBar) v.findViewById(R.id.slider_a);
+					slider_a.setMax((int) ((max - min) * scale));
+					slider_a.setProgress((int) (scale * (lastA - min)));
+
+					final SeekBar slider_b = (SeekBar) v.findViewById(R.id.slider_b);
+					slider_b.setMax((int) ((max - min) * scale));
+					slider_b.setProgress((int) (scale * (lastB - min)));
+
+					final SeekBar slider_c = (SeekBar) v.findViewById(R.id.slider_c);
+					slider_c.setMax((int) ((max - min) * scale));
+					slider_c.setProgress((int) (scale * (lastC - min)));
+					
+					final TextView text_a = (TextView) v.findViewById(R.id.text_a);
+					text_a.setText(String.format(Locale.US, "%.2f", (int) (lastA * 100) / 100F));
+					
+					text_a.setOnEditorActionListener(new EditText.OnEditorActionListener()
+						{
+							@Override
+							public boolean onEditorAction(TextView p1, int p2, KeyEvent p3)
+							{
+								if (p2 == EditorInfo.IME_ACTION_GO)
+								{
+									try
+									{
+										slider_a.setProgress((int) ((Float.parseFloat(text_a.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return true;
+									}
+
+									return false;
+								}
+								return true;
+							}	
+						});
+
+					final TextView text_b = (TextView) v.findViewById(R.id.text_max);
+					text_b.setText(String.format(Locale.US, "%.2f", (int) (lastB * 100) / 100F));
+					text_b.setOnEditorActionListener(new EditText.OnEditorActionListener()
+						{
+							@Override
+							public boolean onEditorAction(TextView p1, int p2, KeyEvent p3)
+							{
+								if (p2 == EditorInfo.IME_ACTION_GO)
+								{
+									try
+									{
+										slider_b.setProgress((int) ((Float.parseFloat(text_b.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return true;
+									}
+
+									return false;
+								}
+								return true;
+							}	
+						});
+
+					final TextView text_c = (TextView) v.findViewById(R.id.text_max);
+					text_c.setText(String.format(Locale.US, "%.2f", (int) (lastB * 100) / 100F));
+					text_c.setOnEditorActionListener(new EditText.OnEditorActionListener()
+						{
+							@Override
+							public boolean onEditorAction(TextView p1, int p2, KeyEvent p3)
+							{
+								if (p2 == EditorInfo.IME_ACTION_GO)
+								{
+									try
+									{
+										slider_c.setProgress((int) ((Float.parseFloat(text_c.getText().toString()) - min) * scale));	
+									}
+									catch (Exception e)
+									{
+										return true;
+									}
+
+									return false;
+								}
+								return true;
+							}	
+						});
+						
+					slider_a.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+						{
+							@Override
+							public void onProgressChanged(SeekBar p1, int p2, boolean p3)
+							{
+								preferences.edit().putFloat(key + "A", (float) slider_a.getProgress() / scale + min).apply();
+								text_a.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key + "A", defA) * 100) / 100F));
+
+								p.setSummary(summary + "\nCurrent: "
+											 + (int) (preferences.getFloat(key + "A", defA) * 100) / 100F
+											 + " // " + (int) (preferences.getFloat(key + "B", defB) * 100) / 100F																	 
+											 + " // " + (int) (preferences.getFloat(key + "C", defC) * 100) / 100F);
+							}
+
+							@Override
+							public void onStartTrackingTouch(SeekBar p1) {}
+
+							@Override
+							public void onStopTrackingTouch(SeekBar p1) {}
+						});
+
+					slider_b.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+						{
+							@Override
+							public void onProgressChanged(SeekBar p1, int p2, boolean p3)
+							{
+								preferences.edit().putFloat(key + "B", (float) slider_b.getProgress() / scale + min).apply();
+								text_b.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key + "B", defB) * 100) / 100F));
+								
+								p.setSummary(summary + "\nCurrent: "
+											 + (int) (preferences.getFloat(key + "A", defA) * 100) / 100F
+											 + " // " + (int) (preferences.getFloat(key + "B", defB) * 100) / 100F																	 
+											 + " // " + (int) (preferences.getFloat(key + "C", defC) * 100) / 100F);
+							}
+
+							@Override
+							public void onStartTrackingTouch(SeekBar p1) {}
+
+							@Override
+							public void onStopTrackingTouch(SeekBar p1) {}
+						});
+
+					slider_c.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+						{
+							@Override
+							public void onProgressChanged(SeekBar p1, int p2, boolean p3)
+							{
+								preferences.edit().putFloat(key + "C", (float) slider_c.getProgress() / scale + min).apply();
+								text_c.setText(String.format(Locale.US, "%.2f", (int) (preferences.getFloat(key + "C", defC) * 100) / 100F));
+
+								p.setSummary(summary + "\nCurrent: "
+											 + (int) (preferences.getFloat(key + "A", defA) * 100) / 100F
+											 + " // " + (int) (preferences.getFloat(key + "B", defB) * 100) / 100F																	 
+											 + " // " + (int) (preferences.getFloat(key + "C", defC) * 100) / 100F);
+							}
+
+							@Override
+							public void onStartTrackingTouch(SeekBar p1) {}
+
+							@Override
+							public void onStopTrackingTouch(SeekBar p1) {}
+						});
+					
+					alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new AlertDialog.OnClickListener()
+						{
+							@Override
+							public void onClick(DialogInterface p1, int p2)
+							{
+								text_a.onEditorAction(EditorInfo.IME_ACTION_GO);
+								text_b.onEditorAction(EditorInfo.IME_ACTION_GO);
+								text_c.onEditorAction(EditorInfo.IME_ACTION_GO);
+								
+								alertDialog.dismiss();
+							}
+						});
+					alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new AlertDialog.OnClickListener()
+						{
+							@Override
+							public void onClick(DialogInterface p1, int p2)
+							{
+								preferences.edit().putFloat(key + "A", lastA).putFloat(key + "B", lastB).apply();
+
+								p.setSummary(summary + "\nCurrent: "
+											 + (int) (lastA * 100) / 100F
+											 + " // " + (int) (lastB * 100) / 100F																	 
+											 + " // " + (int) (lastC * 100) / 100F);
+
+								alertDialog.cancel();
+							}
+						});
+					alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Reset", new AlertDialog.OnClickListener()
+						{
+							@Override
+							public void onClick(DialogInterface p1, int p2) {}
+						});
+
+					alertDialog.show();
+
+					alertDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener()
+						{
+							@Override
+							public void onClick(View p1)
+							{
+								slider_a.setProgress((int) ((defA - min) * scale));
+								slider_b.setProgress((int) ((defB - min) * scale));
+								slider_c.setProgress((int) ((defC - min) * scale));
 							}
 						});
 

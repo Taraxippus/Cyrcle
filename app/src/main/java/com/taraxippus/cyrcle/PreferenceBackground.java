@@ -34,5 +34,6 @@ public class PreferenceBackground extends PreferenceFragment
 		chooseColor("colorVignette", "#000000");
 		chooseValue("vignetteBlurStrength", "strength", "", 0, 1, 100, 0.5F);
 		chooseValue("vignetteBlurRadius", "radius", "", 0, 1, 100, 0.5F);
+		chooseValues("backgroundTextureColor", "Background Color", "H", "S", "V", 0, 2, 200);
 	}
 }
