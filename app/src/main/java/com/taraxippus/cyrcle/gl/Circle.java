@@ -8,6 +8,7 @@ public class Circle
 	public static final float MAX_SIZE = 0.4F;
 	
 	public final CyrcleRenderer renderer;
+	public final int index;
 	public Circle parent;
 	
 	float posX, posY, prevPosX, prevPosY;
@@ -29,17 +30,15 @@ public class Circle
 	
 	int texture;
 	
-	public Circle(CyrcleRenderer renderer)
+	public Circle(CyrcleRenderer renderer, int index)
 	{
 		this.renderer = renderer;
+		this.index = index;
 	}
 	
-	public void spawn()
+	public void spawn(boolean notifyChildren)
 	{
-		if (parent == this)
-			parent = null;
-			
-		if (parent == null)
+		if (parent == null || parent == this)
 		{
 			if (renderer.spawnShape)
 			{
@@ -82,16 +81,6 @@ public class Circle
 		
 		velX = 0;
 		velY = 0;
-		
-		rotation = 0;
-		rotationVel = 0;
-		offset = 0;
-		if (renderer.rotation)
-		{
-			rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180)) * size;
-			rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45)) * size;
-			offset = renderer.offsetMin + renderer.random.nextFloat() * (renderer.offsetMax - renderer.offsetMin);
-		}
 		
 		int color1 = Color.parseColor(renderer.preferences.getString("colorCircle1", "#ffff00"));
 		int color2 = Color.parseColor(renderer.preferences.getString("colorCircle2", "#ffcc00"));
@@ -154,14 +143,20 @@ public class Circle
 		else
 			targetAlpha = alphaMin + renderer.random.nextFloat() * (alphaMax - alphaMin);
 		
-		if (parent != null)
+		rotation = 0;
+		rotationVel = 0;
+		offset = 0;
+		
+		if (parent != null && parent != this)
 		{
 			size = startSize = parent.size * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
 			targetSize = parent.targetSize * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
 			
+			rotation = parent.rotation;
 			offset = parent.size * (renderer.groupOffsetMin + renderer.random.nextFloat() * (renderer.groupOffsetMin + renderer.groupOffsetMax));
 			
 			texture = parent.texture;
+			maxLifeTime = parent.maxLifeTime;
 		}
 		else
 		{
@@ -180,15 +175,22 @@ public class Circle
 
 			directionVelX = renderer.preferences.getFloat("directionXMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionXMax", 0.75F) - renderer.preferences.getFloat("directionXMin", 0.25F));
 			directionVelY = renderer.preferences.getFloat("directionYMin", 0.25F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("directionYMax", 0.75F) - renderer.preferences.getFloat("directionYMin", 0.25F));
+			
+			maxLifeTime = renderer.preferences.getFloat("lifeTimeMin", 30F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("lifeTimeMax", 60F) - renderer.preferences.getFloat("lifeTimeMin", 30F));
+			
+			if (renderer.rotation)
+			{
+				rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180)) * size;
+				rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45)) * size;
+
+				offset = size * (renderer.offsetMin + renderer.random.nextFloat() * (renderer.offsetMax - renderer.offsetMin));
+			}
 		}
-		
+		lifeTime = maxLifeTime;
 		
 		setTarget();
 		
 		flickeringTime = renderer.random.nextFloat() * 480;
-		
-		maxLifeTime = renderer.preferences.getFloat("lifeTimeMin", 30F) + renderer.random.nextFloat() * (renderer.preferences.getFloat("lifeTimeMax", 60F) - renderer.preferences.getFloat("lifeTimeMin", 30F));
-		lifeTime = maxLifeTime;
 		
 		if (!renderer.sudden)
 		{
@@ -206,8 +208,8 @@ public class Circle
 		
 		prevPosX = posX;
 		prevPosY = posY;
-		prevRandomPosX = randomPosX;
-		prevRandomPosY = randomPosY;
+		prevRandomPosX = randomPosX = 0;
+		prevRandomPosY = randomPosY = 0;
 		prevRotation = rotation;
 		prevOffset = offset;
 		prevRed = red;
@@ -215,6 +217,10 @@ public class Circle
 		prevBlue = blue;
 		prevAlpha = alpha;
 		prevSize = size;
+		
+		if (parent == this && notifyChildren)
+			for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+				renderer.circles[index + i].spawn(false);
 	}
 	
 	public void setTarget()
@@ -281,7 +287,7 @@ public class Circle
 		b = blue * partial + (1 - partial) * prevBlue;
 		a = alpha * partial + (1 - partial) * prevAlpha;
 
-		if (!renderer.rotation && parent == null)
+		if (!renderer.rotation && (parent == null || parent == this))
 		{
 			vertices.put(x - sX);
 			vertices.put(y - sY);
@@ -336,7 +342,7 @@ public class Circle
 		}
 		else
 		{
-			rot = rotation * partial + (1 - partial) * prevRotation;
+			rot = (float) ((rotation * partial + (1 - partial) * prevRotation) / 180 * Math.PI);
 			cos = (float) Math.cos(rot);
 			sin = (float) Math.sin(rot);
 			off = offset * partial + prevOffset * (1 - partial);
@@ -353,7 +359,6 @@ public class Circle
 			vertices.put(1);
 			vertices.put(texture);
 
-
 			vertices.put(x + cos * (-sX - off) - sin * (sY - off) + off);
 			vertices.put(y + sin * (-sX - off) + cos * (sY - off) + off);
 
@@ -365,8 +370,7 @@ public class Circle
 			vertices.put(0);
 			vertices.put(0);
 			vertices.put(texture);
-
-
+			
 			vertices.put(x + cos * (sX - off) - sin * (-sY - off) + off);
 			vertices.put(y + sin * (sX - off) + cos * (-sY - off) + off);
 
@@ -378,8 +382,7 @@ public class Circle
 			vertices.put(1);
 			vertices.put(1);
 			vertices.put(texture);
-
-
+			
 			vertices.put(x + cos * (sX - off) - sin * (sY - off) + off);
 			vertices.put(y + sin * (sX - off) + cos * (sY - off) + off);
 
@@ -425,7 +428,7 @@ public class Circle
 				alpha = lifeTime / renderer.fadeOut;
 
 				if (lifeTime <= delta)
-					spawn();
+					spawn(true);
 			}
 			
 			deltaLifeTime = lifeTime / maxLifeTime;
@@ -450,7 +453,7 @@ public class Circle
 			lifeTime -= delta;
 		}
 	
-		if (parent != null)
+		if (parent != null && parent != this)
 		{
 			posX = parent.posX + parent.randomPosX;
 			posY = parent.posY + parent.randomPosY;
@@ -484,26 +487,54 @@ public class Circle
 			{
 				if (posX + randomPosX < (float) -renderer.width / renderer.height - size)
 				{
-					posX += renderer.ratio * 2 + size * 2;
-					prevPosX += renderer.ratio * 2 + size * 2;
-				}
+					posX += (float) renderer.width / renderer.height * 2 + size * 2;
+					prevPosX += (float) renderer.width / renderer.height * 2 + size * 2;
 
-				if (posX + randomPosX > renderer.ratio + size)
+					if (parent == this)
+						for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+						{
+							renderer.circles[index + i].posX += (float) renderer.width / renderer.height * 2 + size * 2;
+							renderer.circles[index + i].prevPosX += (float) renderer.width / renderer.height * 2 + size * 2;
+						}
+				}
+				
+				if (posX + randomPosX > (float) renderer.width / renderer.height + size)
 				{
-					posX -=  renderer.ratio * 2 + size * 2;
-					prevPosX -=  renderer.ratio * 2 + size * 2;
+					posX -=  (float) renderer.width / renderer.height * 2 + size * 2;
+					prevPosX -=  (float) renderer.width / renderer.height * 2 + size * 2;
+
+					if (parent == this)
+						for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+						{
+							renderer.circles[index + i].posX -= (float) renderer.width / renderer.height * 2 + size * 2;
+							renderer.circles[index + i].prevPosX -= (float) renderer.width / renderer.height * 2 + size * 2;
+						}
 				}
 
 				if (posY + randomPosY < -1 - size)
 				{
 					posY += 2 + size * 2;
 					prevPosY += 2 + size * 2;
+
+					if (parent == this)
+						for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+						{
+							renderer.circles[index + i].posY += 2 + size * 2;
+							renderer.circles[index + i].prevPosY += 2 + size * 2;
+						}	
 				}
 
 				if (posY + randomPosY > 1 + size)
 				{
 					posY -= 2 + size * 2;
 					prevPosY -= 2 + size * 2;
+
+					if (parent == this)
+						for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+						{
+							renderer.circles[index + i].posY -= 2 + size * 2;
+							renderer.circles[index + i].prevPosY -= 2 + size * 2;
+						}
 				}
 			}
 		}
