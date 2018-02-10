@@ -9,8 +9,9 @@ varying vec2 v_UV;
 
 void main()
 {
-	for (float i = -u_BlurSize; i <= u_BlurSize; ++i)
-		gl_FragColor += texture2D(u_Texture, vec2(v_UV.x, v_UV.y + u_InvResolution.y * i));
-		
-	gl_FragColor /= u_BlurSize * 2.0;
+	gl_FragColor = texture2D(u_Texture, v_UV - vec2(0.0, u_BlurSize) * u_InvResolution) * 0.06136;
+	gl_FragColor += texture2D(u_Texture, v_UV - vec2(0.0, u_BlurSize * 0.5) * u_InvResolution) * 0.24477;
+	gl_FragColor += texture2D(u_Texture, v_UV) * 0.38774;
+	gl_FragColor += texture2D(u_Texture, v_UV + vec2(0.0, u_BlurSize * 0.5) * u_InvResolution) * 0.24477;
+	gl_FragColor += texture2D(u_Texture, v_UV + vec2(0.0, u_BlurSize) * u_InvResolution) * 0.06136;
 }

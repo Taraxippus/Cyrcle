@@ -5,14 +5,15 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.preference.PreferenceManager;
-
 import com.taraxippus.cyrcle.R;
 import com.taraxippus.cyrcle.WallpaperPreferenceActivity;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -20,15 +21,20 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.Random;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+import android.hardware.SensorEvent;
 import android.widget.Toast;
 
-public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences.OnSharedPreferenceChangeListener
+public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences.OnSharedPreferenceChangeListener, SensorEventListener
 {
+	public static final int SENSOR_PERIOD = 1000;
+	
 	public final Context context;
 	public final SharedPreferences preferences;
+	public final SensorManager sensorManager;
+	public final Sensor gravitySensor;
+	
 	public final Random random = new Random();
 	public int width, height;
 	public boolean isPreview;
@@ -46,6 +52,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public final Program program_blur_vertical = new Program();
 	public final Program program_blur_horizontal = new Program();
 	public final Program program_texture = new Program();
+	public final Program program_texture_recolor = new Program();
+	public final Program program_texture_resize = new Program();
 	
 	public final Texture texture1 = new Texture();
 	public final Texture texture4 = new Texture();
@@ -58,6 +66,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	public Framebuffer textureBuffer5 = new Framebuffer();
 	public Framebuffer textureBuffer6 = new Framebuffer();
 	public Framebuffer textureBufferTMP = new Framebuffer();
+	public Framebuffer textureBufferBackground = new Framebuffer();
+	public Framebuffer textureBufferBackground2 = new Framebuffer();
 	
 	final float[] matrix_model_background = new float[16];
 	final float[] matrix_view = new float[16];
@@ -88,17 +98,25 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	private int fps;
 	private long lastFPS;
 	
-	public boolean repulsion, respawn, touch, swipe, tap,
+	protected boolean repulsion, repulsionWall, respawn, connected, touch, swipe, tap,
+	vignette, additive,
 	animateColor, animateAlpha, animateSize,
 	direction, flickering, sudden, fade,
-	spawnShape, animateShape, rotation, loop, backgroundTexture, backgroundTextureSwipe;
-	public float repulsionStrength, offsetMin, offsetMax,
+	spawnShape, animateShape, rotation, loop, backgroundTexture, backgroundTextureSwipe, backgroundTextureSwipeInverse,
+	sizeEffectsTouch, sizeEffectsSwipe,
+	gravity, sizeEffectsGravity;
+	protected float repulsionStrength, offsetMin, offsetMax,
 	groupSize, groupPercentage, 
 	groupSizeFactorMin, groupSizeFactorMax, groupOffsetMin, groupOffsetMax,
-	damping, fadeIn, fadeOut;
+	damping, fadeIn, fadeOut,
+	killAnimation, touchSensitivity, swipeSensitivity,
+	gravityXX, gravityXY, gravityXZ, gravityYX, gravityYY, gravityYZ;
 	public int shape;
 	
-	public float ratio, circleRatio = 1, ringRatio = 1, backgroundRatio = 1;	
+	protected float ratio, circleRatio = 1, ringRatio = 1, backgroundRatio = 1;	
+	
+	public boolean paused;
+	private boolean sensorActive;
 	
 	private final Runnable fpsRunnable = new Runnable()
 	{
@@ -115,7 +133,11 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		this.context = context;
 		
 		this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
+		//this.context.getSharedPreferences(context.getPackageName() + "_preferences", Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
 		this.preferences.registerOnSharedPreferenceChangeListener(this);
+		
+		sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+		gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
 	}
 	
 	@Override
@@ -130,18 +152,18 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		
 		program_circle_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_circle_texture, "a_Position");
 		program_ring_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_ring_texture, "a_Position");
-		program_blur_horizontal.init(context, R.raw.vertex_fullscreen, R.raw.fragment_blur_horizontal, "a_Position");
-		program_blur_vertical.init(context, R.raw.vertex_fullscreen, R.raw.fragment_blur_vertical, "a_Position");
 		program_texture.init(context, R.raw.vertex_fullscreen, R.raw.fragment_background_texture, "a_Position");
-		
-		program_blur_horizontal.use();
-		GLES20.glUniform1i(program_blur_horizontal.getUniform("u_Texture"), 0);
-		
-		program_blur_vertical.use();
-		GLES20.glUniform1i(program_blur_vertical.getUniform("u_Texture"), 0);
+		program_texture_recolor.init(context, R.raw.vertex_fullscreen, R.raw.fragment_texture_recolor, "a_Position");
+		program_texture_resize.init(context, R.raw.vertex_fullscreen, R.raw.fragment_texture_resize, "a_Position");
 		
 		program_texture.use();
 		GLES20.glUniform1i(program_texture.getUniform("u_Texture"), 0);
+		
+		program_texture_recolor.use();
+		GLES20.glUniform1i(program_texture_recolor.getUniform("u_Texture"), 0);
+		
+		program_texture_resize.use();
+		GLES20.glUniform1i(program_texture_resize.getUniform("u_Texture"), 0);
 		
 		shape_fullscreen.init(GLES20.GL_TRIANGLE_STRIP, new float[] {-1, -1,  -1, 1,  1, -1,  1, 1}, 4, 2);
 		
@@ -209,6 +231,29 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		lastTime = 0;
 		lastWidth = width;
 		lastHeight = height;
+		paused = false;
+	}
+	
+	public void onPause()
+	{
+		paused = true;
+		
+		if (sensorActive)
+		{
+			sensorManager.unregisterListener(this, gravitySensor);
+			sensorActive = false;
+		}
+	}
+	
+	public void onResume()
+	{
+		paused = false;
+		
+		if (gravity && !sensorActive)
+		{
+			sensorManager.registerListener(this, gravitySensor, SENSOR_PERIOD);
+			sensorActive = true;
+		}
 	}
 	
 	public void updateMVP()
@@ -262,6 +307,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		if (height > 0)
 		{
 			int size, blurSize;
+			String blurMode = preferences.getString("blurMode", "normal");
 			
 			if (preferences.getBoolean("circleTexture", false))
 			{
@@ -274,7 +320,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				else
 					try
 					{
-						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "circleTextureFile");
+						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "/circleTextureFile");
 					}
 					catch (Exception e)
 					{
@@ -295,19 +341,29 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				texture1.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
 				texture1.bind(1);
 				
+				createBlurPrograms(width, height, blurSize);
+				
 				texture1.bind(0);
-				blur(width, height, blurSize, textureBuffer2);
-				if (preferences.getBoolean("blurAdd", false))
+				blur(textureBuffer2);
+				if (blurMode.equals("inner"))
 				{
 					GLES20.glBlendFunc(GLES20.GL_ONE_MINUS_DST_COLOR, GLES20.GL_DST_COLOR);
 					texture1.bind(0);
 					program_texture.use();
 					shape_fullscreen.render();		
 				}
+				else if (blurMode.equals("outer"))
+				{
+					GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+					texture1.bind(0);
+					program_texture_resize.use();
+					GLES20.glUniform2f(program_texture_resize.getUniform("u_Scale"), 1F - 2F * blurSize / width, 1F - 2F * blurSize / height);
+					shape_fullscreen.render();		
+				}
 				textureBuffer2.bindTexture(2);
 				
 				textureBuffer2.bindTexture(2);
-				blur(width, height, blurSize, textureBuffer3);
+				blur(textureBuffer3);
 				textureBuffer3.bindTexture(3);
 			}
 			else
@@ -328,20 +384,31 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				
 				textureBuffer1.bindTexture(1);
 				
-				textureBuffer1.bindTexture(0);
-				blur(size, size, blurSize, textureBuffer2);
+				createBlurPrograms(size, size, blurSize);
 				
-				if (preferences.getBoolean("blurAdd", false))
+				textureBuffer1.bindTexture(0);
+				blur(textureBuffer2);
+				
+				if (blurMode.equals("inner"))
 				{
 					GLES20.glBlendFunc(GLES20.GL_ONE_MINUS_DST_COLOR, GLES20.GL_DST_COLOR);
 					textureBuffer1.bindTexture(0);
 					program_texture.use();
 					shape_fullscreen.render();		
 				}
+				else if (blurMode.equals("outer"))
+				{
+					GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+					textureBuffer1.bindTexture(0);
+					program_texture_resize.use();
+					GLES20.glUniform2f(program_texture_resize.getUniform("u_Scale"), 1F - 2F * blurSize / size, 1F - 2F * blurSize / size);
+					shape_fullscreen.render();		
+				}
+				
 				textureBuffer2.bindTexture(2);
 				
 				textureBuffer2.bindTexture(0);
-				blur(size, size, blurSize, textureBuffer3);
+				blur(textureBuffer3);
 				textureBuffer3.bindTexture(3);
 			}
 
@@ -356,7 +423,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				else
 					try
 					{
-						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "ringTextureFile");
+						bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "/ringTextureFile");
 					}
 					catch (Exception e)
 					{
@@ -375,19 +442,29 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				textureBuffer6.init(false, width, height);
 				textureBufferTMP.init(false, width, height);
 
+				createBlurPrograms(width, height, blurSize);
+				
 				texture4.bind(0);
-				blur(width, height, blurSize, textureBuffer5);
-				if (preferences.getBoolean("blurAdd", false))
+				blur(textureBuffer5);
+				if (blurMode.equals("inner"))
 				{
 					GLES20.glBlendFunc(GLES20.GL_ONE_MINUS_DST_COLOR, GLES20.GL_DST_COLOR);
 					texture4.bind(0);
 					program_texture.use();
 					shape_fullscreen.render();		
 				}
+				else if (blurMode.equals("outer"))
+				{
+					GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+					texture4.bind(0);
+					program_texture_resize.use();
+					GLES20.glUniform2f(program_texture_resize.getUniform("u_Scale"), 1F - 2F * blurSize / width, 1F - 2F * blurSize / height);
+					shape_fullscreen.render();		
+				}
 				textureBuffer5.bindTexture(5);
 				
 				textureBuffer5.bindTexture(0);
-				blur(width, height, blurSize, textureBuffer6);
+				blur(textureBuffer6);
 				textureBuffer6.bindTexture(6);
 			}
 			else
@@ -409,19 +486,28 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 				textureBuffer4.bindTexture(4);
 
+				createBlurPrograms(size, size, blurSize);
+				
 				textureBuffer4.bindTexture(0);
-				blur(size, size, blurSize, textureBuffer5);
-				if (preferences.getBoolean("blurAdd", false))
+				blur(textureBuffer5);
+				if (blurMode.equals("inner"))
 				{
 					GLES20.glBlendFunc(GLES20.GL_ONE_MINUS_DST_COLOR, GLES20.GL_DST_COLOR);
 					textureBuffer4.bindTexture(0);
 					program_texture.use();
 					shape_fullscreen.render();		
 				}
+				else if (blurMode.equals("outer"))
+				{
+					GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+					program_ring_texture.use();
+					GLES20.glUniform1f(program_ring_texture.getUniform("u_RingWidth"), preferences.getFloat("ringWidth", 0.1F) - 2F * blurSize / size);
+					shape_fullscreen.render();
+				}
 				textureBuffer5.bindTexture(5);
 				
 				textureBuffer5.bindTexture(0);
-				blur(size, size, blurSize, textureBuffer6);
+				blur(textureBuffer6);
 				textureBuffer6.bindTexture(6);
 			}
 			
@@ -431,19 +517,73 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		}
 	}
 	
-	public void blur(int width, int height, float blurSize, Framebuffer buffer)
+	public void createBlurPrograms(int width, int height, float blurSize)
+	{
+		int kernelSize = 1 + 4 * (int) (blurSize / 2);
+		int i;
+		float[] kernel = new float[kernelSize];
+
+		for (i = 0; i < kernelSize; ++i)
+			kernel[i] = gaussian((i - kernelSize / 2) / blurSize * 6);
+
+		float sum = 0;
+		for (i = 0; i < kernelSize; ++i)
+			sum += kernel[i];
+			
+		for (i = 0; i < kernelSize; ++i)
+			kernel[i] /= sum;
+
+		StringBuilder sb = new StringBuilder();
+		
+		for (i = 0; i < kernelSize / 2; ++i)
+			if (kernel[i] > 0)
+				sb.append("gl_FragColor += texture2D(u_Texture, v_UV + u_Dir * vec2(").append((i - kernelSize / 2) * 2F).append(")) * ").append(String.format("%.16f", kernel[i])).append(";\n");
+
+		sb.append("gl_FragColor += texture2D(u_Texture, v_UV) * ").append(kernel[kernelSize / 2]).append(";\n");
+		
+		for (i = kernelSize / 2 + 1; i < kernelSize; ++i)
+			if (kernel[i] > 0)
+				sb.append("gl_FragColor += texture2D(u_Texture, v_UV + u_Dir * vec2(").append((i - kernelSize / 2) * 2F).append(")) * ").append(String.format("%.16f", kernel[i])).append(";\n");
+		
+		String kernelString = sb.toString();
+		program_blur_horizontal.init(Program.getString(context, R.raw.vertex_fullscreen), Program.getString(context, R.raw.fragment_blur).replace("#blur", kernelString), "a_Position");
+		program_blur_vertical.init(Program.getString(context, R.raw.vertex_fullscreen), Program.getString(context, R.raw.fragment_blur).replace("#blur", kernelString), "a_Position");
+
+		program_blur_horizontal.use();
+		GLES20.glUniform1i(program_blur_horizontal.getUniform("u_Texture"), 0);
+		GLES20.glUniform2f(program_blur_horizontal.getUniform("u_Dir"), 1F / width, 0);
+		
+		program_blur_vertical.use();
+		GLES20.glUniform1i(program_blur_vertical.getUniform("u_Texture"), 0);
+		GLES20.glUniform2f(program_blur_vertical.getUniform("u_Dir"), 0, 1F / height);
+	}
+
+	public static final double sigma = 3D;
+
+	public float gaussian(float x)
+	{
+		return (float) (1D / (sigma * Math.sqrt(2D * Math.PI)) * Math.pow(Math.E, - x * x / (2D * sigma * sigma)));
+	}
+	
+	public void blur(Framebuffer buffer)
 	{
 		textureBufferTMP.bind(true);
 		program_blur_horizontal.use();
-		GLES20.glUniform2f(program_blur_horizontal.getUniform("u_InvResolution"), 1F / width, 1F / height);
-		GLES20.glUniform1f(program_blur_horizontal.getUniform("u_BlurSize"), blurSize);
 		shape_fullscreen.render();
 
 		buffer.bind(true);
 		program_blur_vertical.use();
 		textureBufferTMP.bindTexture(0);
-		GLES20.glUniform2f(program_blur_vertical.getUniform("u_InvResolution"), 1F / width, 1F / height);
-		GLES20.glUniform1f(program_blur_vertical.getUniform("u_BlurSize"), blurSize);
+		shape_fullscreen.render();
+		
+		textureBufferTMP.bind(true);
+		buffer.bindTexture(0);
+		program_blur_horizontal.use();
+		shape_fullscreen.render();
+
+		buffer.bind(true);
+		program_blur_vertical.use();
+		textureBufferTMP.bindTexture(0);
 		shape_fullscreen.render();
 	}
 	
@@ -572,7 +712,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			if (!preferences.getString("backgroundTextureFile", "").isEmpty())
 				try
 				{
-					bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "backgroundTextureFile");
+					bitmap = BitmapFactory.decodeFile(context.getFilesDir().getAbsolutePath() + "/backgroundTextureFile");
 				}
 				catch (Exception e)
 				{
@@ -583,12 +723,46 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.android);
 			
 			backgroundRatio = bitmap.getWidth() / (float) bitmap.getHeight();
-			textureBackground.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_NEAREST, GLES20.GL_CLAMP_TO_EDGE);
+			
+			if (preferences.getFloat("backgroundBlurStrength", 0.0F) > 0.0F)
+			{
+				textureBufferBackground2.init(false, bitmap.getWidth(), bitmap.getHeight());
+				textureBufferBackground.init(false, width, height);
+				textureBufferTMP.init(false, width, height);
+
+				textureBackground.init(bitmap, GLES20.GL_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				textureBackground.bind(0);
+				
+				createBlurPrograms(width, height, 0.1F * height * preferences.getFloat("backgroundBlurStrength", 0));
+				
+				textureBufferBackground2.bind(true);
+				program_texture_recolor.use();
+				GLES20.glUniform3f(program_texture_recolor.getUniform("u_HSV"), preferences.getFloat("backgroundTextureColorA", 1), preferences.getFloat("backgroundTextureColorB", 1), preferences.getFloat("backgroundTextureColorC", 1));
+				shape_fullscreen.render();
+				
+				textureBufferBackground2.bindTexture(0);
+				blur(textureBufferBackground);
+			}
+			else
+			{
+				textureBufferBackground.init(false, width, height);
+				
+				textureBackground.init(bitmap, GLES20.GL_LINEAR_MIPMAP_LINEAR, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+				textureBackground.bind(0);
+				
+				textureBufferBackground.bind(true);
+				program_texture_recolor.use();
+				GLES20.glUniform3f(program_texture_recolor.getUniform("u_HSV"), preferences.getFloat("backgroundTextureColorA", 1), preferences.getFloat("backgroundTextureColorB", 1), preferences.getFloat("backgroundTextureColorC", 1));
+				shape_fullscreen.render();
+			}
+			
+			Framebuffer.release(this, false);
+			textureBufferBackground.bindTexture(10);
 			
 			program_background.init(context, R.raw.vertex_background_texture, R.raw.fragment_background_texture, "a_Position", "a_UV");
 			
 			program_background.use();
-			GLES20.glUniform1i(program_background.getUniform("u_Texture"), 0);
+			GLES20.glUniform1i(program_background.getUniform("u_Texture"), 10);
 			
 			updateBackgroundMatrix = true;
 		}
@@ -611,14 +785,14 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			if (backgroundRatio > ratio)
 			{
 				if (backgroundTextureSwipe)
-					Matrix.translateM(matrix_model_background, 0, (0.5F - lastXOffset) * (backgroundRatio / ratio - 1), 0, 0);
+					Matrix.translateM(matrix_model_background, 0, (backgroundTextureSwipeInverse ? -1 : 1) * (1 - 2 * lastXOffset) * (backgroundRatio / ratio - 1), 0, 0);
 				
 				Matrix.scaleM(matrix_model_background, 0, backgroundRatio / ratio, 1, 1);
 			}
 			else
 			{
 				if (backgroundTextureSwipe)
-					Matrix.translateM(matrix_model_background, 0, 0, (0.5F - lastYOffset) * (ratio / backgroundRatio - 1), 0);
+					Matrix.translateM(matrix_model_background, 0, 0, (backgroundTextureSwipeInverse ? -1 : 1) * (0.5F - lastYOffset) * (ratio / backgroundRatio - 1), 0);
 				
 				Matrix.scaleM(matrix_model_background, 0, 1, ratio / backgroundRatio, 1);
 			}
@@ -667,6 +841,22 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			for (i = 0; circles != null && i < circles.length; ++i)
 			{
 				if (repulsion)
+				{
+					if (repulsionWall)
+					{
+						deltaX = circles[i].posX + circles[i].randomPosX;
+						deltaY = circles[i].posY + circles[i].randomPosY;
+						
+						if (Math.abs(deltaX) < ratio - 0.1F)
+							deltaX = 0;
+						
+						if (Math.abs(deltaY) < 1 - 0.1F)
+							deltaY = 0;
+							
+						circles[i].velX += -Math.signum(deltaX) * Math.pow(deltaX, 2) * (1 / circles[i].size) * 0.025F * repulsionStrength;
+						circles[i].velY += -Math.signum(deltaY) * Math.pow(deltaY, 2) * (1 / circles[i].size) * 0.025F * repulsionStrength;
+					}
+					
 					for (i1 = i + 1; i1 < circles.length && circles[i1] != null; ++i1)
 					{
 						massSum = 1 / circles[i].size + 1 / circles[i1].size;
@@ -675,16 +865,18 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 
 						if (deltaX * deltaX + deltaY * deltaY > 0.25F)
 							continue;
-						
+
 						distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
 
 						circles[i].velX += Math.signum(deltaX) * distance * (1 / circles[i].size) / massSum * 0.1F * repulsionStrength;
 						circles[i].velY += Math.signum(deltaY) * distance * (1 / circles[i].size) / massSum * 0.1F * repulsionStrength;
-						
+
 						circles[i1].velX -= Math.signum(deltaX) * distance * (1 / circles[i1].size) / massSum * 0.1F * repulsionStrength;
 						circles[i1].velY -= Math.signum(deltaY) * distance * (1 / circles[i1].size) / massSum * 0.1F * repulsionStrength;
-						
+
 					}
+				}
+					
 					
 				circles[i].update(time, fixedDelta);
 			}
@@ -722,7 +914,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
-		if (preferences.getBoolean("additive", true))
+		if (additive)
 			GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
 		else 
 			GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -771,12 +963,9 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			updateColors = false;
 		}
 		
-		if (backgroundTexture)
-			textureBackground.bind(0);
-		
 		shape_fullscreen.render();
 		
-		if (preferences.getBoolean("vignette", false))
+		if (vignette)
 		{
 			program_post.use();
 
@@ -805,13 +994,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 			for (int i = 0; i < circles.length; ++i)
 			{
-				circles[i].velX += (xOffset - lastXOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
-				circles[i].velY += (yOffset - lastYOffset) / circles[i].size * -0.5F * preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
+				circles[i].velX += (xOffset - lastXOffset) * (!sizeEffectsSwipe ? 5F : 1F / circles[i].size) * -0.5F * swipeSensitivity;
+				circles[i].velY += (yOffset - lastYOffset) * (!sizeEffectsSwipe ? 5F : 1F / circles[i].size) * -0.5F * swipeSensitivity;
 			}
 		}
 		if (backgroundTextureSwipe)
 			updateBackgroundMatrix = true;
-		
 		
 		lastXOffset = xOffset;
 		lastYOffset = yOffset;
@@ -835,7 +1023,8 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				deltaY = circles[i].posY + circles[i].randomPosY - y;
 
 				if (Math.sqrt(deltaX * deltaX + deltaY * deltaY) < circles[i].size * 0.8)
-					circles[i].spawn(true);
+					circles[i].kill();
+						
 			}
 		}
 		if (touch)
@@ -854,16 +1043,44 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			
 			for (int i = 0; i < circles.length; ++i)
 			{
+				if (circles[i].isDead)
+					continue;
+					
 				deltaX = circles[i].posX + circles[i].randomPosX - x;
 				deltaY = circles[i].posY + circles[i].randomPosY - y;
 				
 				distance = Math.max(0.5F - (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY), 0);
 					
-				circles[i].velX += Math.signum(deltaX) * distance / circles[i].size * 0.5F * preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInvert", false) ? -1 : 1);
-				circles[i].velY += Math.signum(deltaY) * distance / circles[i].size * 0.5F * preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInvert", false) ? -1 : 1);
+				circles[i].velX += Math.signum(deltaX) * distance * (!sizeEffectsTouch ? 5F : 1F / circles[i].size) * 0.5F * touchSensitivity;
+				circles[i].velY += Math.signum(deltaY) * distance * (!sizeEffectsTouch ? 5F : 1F / circles[i].size) * 0.5F * touchSensitivity;
 			}
 		}
 	}
+	
+
+	@Override
+	public void onSensorChanged(SensorEvent e)
+	{
+		if (!sensorActive)
+			sensorManager.unregisterListener(this, gravitySensor);
+		
+		if (circles == null)
+			return;
+
+		respawn(false);
+
+		for (int i = 0; i < circles.length; ++i)
+		{
+			if (circles[i] == null)
+				continue;
+
+			circles[i].velX -= 0.0001F * (!sizeEffectsGravity ? 5F : 1F / circles[i].size) * (e.values[0] * gravityXX + e.values[1] * gravityXY + e.values[2] * gravityXZ);
+			circles[i].velY -= 0.0001F * (!sizeEffectsGravity ? 5F : 1F / circles[i].size) * (e.values[0] * gravityYX + e.values[1] * gravityYY + e.values[2] * gravityYZ);
+		}
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor p1, int p2) {}
 	
 	public void respawn()
 	{
@@ -906,6 +1123,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	{
 		switch (key)
 		{
+			case "additive":
+				additive = preferences.getBoolean("additive", true);
+				break;
+			case "vignette":
+				vignette = preferences.getBoolean("vignette", false);
+				break;
 			case "spawnShape":
 				spawnShape = preferences.getBoolean("spawnShape", false);
 				respawn();
@@ -964,6 +1187,15 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 			case "rotationSpeedMin":
 			case "rotationSpeedMax":
 			case "direction":
+			//case "refresh":
+				updatePreferences();
+				respawn();
+				break;
+		    case "refresh":
+//				this.preferences.unregisterOnSharedPreferenceChangeListener(this);
+//				this.preferences = this.context.getSharedPreferences(context.getPackageName() + "_preferences", Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+//				this.preferences.registerOnSharedPreferenceChangeListener(this);
+//				
 				updatePreferences();
 				respawn();
 				break;
@@ -999,13 +1231,18 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				groupOffsetMax = preferences.getFloat("groupOffsetMax", 1.25F);
 				respawn();
 				break;
+			case "groupConnected":
+				connected = preferences.getBoolean("groupConnected", false);
+				break;
 				
 			case "loop":
 				loop = preferences.getBoolean("loop", true);
 				break;
 			case "repulsion":
+			case "repulsionWall":
 			case "repulsionStrength":
 				repulsion = preferences.getBoolean("repulsion", false);
+				repulsionWall = preferences.getBoolean("repulsionWall", false);
 				repulsionStrength = preferences.getFloat("repulsionStrength", 0.5F);
 				break;
 			case "fade":
@@ -1014,13 +1251,56 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				fadeOut = preferences.getFloat("fadeOut", 1F);
 				break;
 			case "touch":
+			case "touchSensitivity":
+			case "touchSize":
+			case "touchInvert":
+				touchSensitivity = preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInvert", false) ? -1 : 1);
 				touch = preferences.getBoolean("touch", true);
+				sizeEffectsTouch = preferences.getBoolean("touchSize", true);
 				break;
 			case "tap":
+			case "tapDuration":
 				tap = preferences.getBoolean("tap", true);
+				killAnimation = preferences.getFloat("tapDuration", 0.25F);
 				break;
 			case "swipe":
+			case "swipeSensitivity":
+			case "swipeSize":
+			case "swipeInvert":
+				swipeSensitivity = preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInvert", false) ? -1 : 1);
 				swipe = preferences.getBoolean("swipe", true);
+				sizeEffectsSwipe = preferences.getBoolean("swipeSize", true);
+				break;
+			case "gravity":
+				gravity = preferences.getBoolean("gravity", false);
+				
+				if (gravity && !sensorActive && !paused)
+				{
+					sensorManager.registerListener(this, gravitySensor, SENSOR_PERIOD);
+					sensorActive = true;
+				}
+				else if (!gravity && sensorActive)
+				{
+					sensorManager.unregisterListener(this, gravitySensor);
+					sensorActive = false;
+				}
+				break;
+			case "gravitySize":
+				sizeEffectsGravity = preferences.getBoolean("gravitySize", false);
+				break;
+			case "gravityXA":
+			case "gravityXB":
+			case "gravityXC":
+				gravityXX = preferences.getFloat("gravityXA", 1);
+				gravityXY = preferences.getFloat("gravityXB", 0);
+				gravityXZ = preferences.getFloat("gravityXC", 0);
+				break;
+			case "gravityYA":
+			case "gravityYB":
+			case "gravityYC":
+				gravityYX = preferences.getFloat("gravityXA", 0);
+				gravityYY = preferences.getFloat("gravityYB", 1);
+				gravityYZ = preferences.getFloat("gravityYC", 0);
 				break;
 			case "damping":
 				damping = preferences.getFloat("damping", 0.05F);
@@ -1032,7 +1312,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				resetTarget();
 				break;
 			case "blurStrength":
-			case "blurAdd":
+			case "blurMode":
 			case "ringWidth":
 			case "circleTexture":
 			case "circleTextureFile":
@@ -1055,11 +1335,17 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 				break;
 			case "backgroundTexture":
 			case "backgroundTextureFile":
+			case "backgroundTextureColorA":
+			case "backgroundTextureColorB":
+			case "backgroundTextureColorC":
+			case "backgroundBlurStrength":
 				backgroundTexture = preferences.getBoolean("backgroundTexture", false);
 				updateBackground = true;
 				break;
 			case "backgroundTextureSwipe":
+			case "backgroundTextureSwipeInverse":
 				backgroundTextureSwipe = preferences.getBoolean("backgroundTextureSwipe", true);
+				backgroundTextureSwipeInverse = preferences.getBoolean("backgroundTextureSwipeInverse", false);
 				updateBackgroundMatrix = true;
 				break;
 			case "count":
@@ -1079,6 +1365,7 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 	{
 		loop = preferences.getBoolean("loop", true);
 		repulsion = preferences.getBoolean("repulsion", false);
+		repulsionWall = preferences.getBoolean("repulsionWall", false);
 		repulsionStrength = preferences.getFloat("repulsionStrength", 0.5F);
 		respawn = preferences.getBoolean("respawn", true);
 		tap = preferences.getBoolean("tap", true);
@@ -1099,8 +1386,12 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		animateShape = preferences.getBoolean("animateShape", false);
 		shape = Arrays.binarySearch(context.getResources().getStringArray(R.array.shape), preferences.getString("shape", "Circle"));
 		
+		vignette = preferences.getBoolean("vignette", false);
 		backgroundTexture = preferences.getBoolean("backgroundTexture", false);
 		backgroundTextureSwipe = preferences.getBoolean("backgroundTextureSwipe", true);
+		backgroundTextureSwipeInverse = preferences.getBoolean("backgroundTextureSwipeInverse", false);
+		
+		additive = preferences.getBoolean("additive", true);
 		
 		rotation = preferences.getBoolean("rotation", false);
 		offsetMin = preferences.getFloat("offsetMin", 0.0F);
@@ -1112,6 +1403,35 @@ public class CyrcleRenderer implements GLSurfaceView.Renderer, SharedPreferences
 		groupSizeFactorMax = preferences.getFloat("groupSizeFactorMax", 0.75F);
 		groupOffsetMin = preferences.getFloat("groupOffsetMin", 0.75F);
 		groupOffsetMax = preferences.getFloat("groupOffsetMax", 1.25F);
+		connected = preferences.getBoolean("groupConnected", false);
+		
+		killAnimation = preferences.getFloat("tapDuration", 0.25F);
+		
+		touchSensitivity = preferences.getFloat("touchSensitivity", 0.5F) * (preferences.getBoolean("touchInverse", false) ? -1 : 1);
+		sizeEffectsTouch = preferences.getBoolean("touchSize", true);
+		
+		swipeSensitivity = preferences.getFloat("swipeSensitivity", 0.5F) * (preferences.getBoolean("swipeInverse", false) ? -1 : 1);
+		sizeEffectsSwipe = preferences.getBoolean("swipeSize", true);
+		
+		gravity = preferences.getBoolean("gravity", false);
+		sizeEffectsGravity = preferences.getBoolean("gravitySize", false);
+		gravityXX = preferences.getFloat("gravityXA", 1);
+		gravityXY = preferences.getFloat("gravityXB", 0);
+		gravityXZ = preferences.getFloat("gravityXC", 0);
+		gravityYX = preferences.getFloat("gravityXA", 0);
+		gravityYY = preferences.getFloat("gravityYB", 1);
+		gravityYZ = preferences.getFloat("gravityYC", 0);
+		
+		if (gravity && !sensorActive && !paused)
+		{
+			sensorManager.registerListener(this, gravitySensor, SENSOR_PERIOD);
+			sensorActive = true;
+		}
+		else if (!gravity && sensorActive)
+		{
+			sensorManager.unregisterListener(this, gravitySensor);
+			sensorActive = false;
+		}
 	
 		maxFPS = (int) preferences.getFloat("fps", 45);
 		fixedDelta = 1F / preferences.getFloat("ups", 45);

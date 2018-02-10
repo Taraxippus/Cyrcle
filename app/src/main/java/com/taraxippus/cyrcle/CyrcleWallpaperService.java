@@ -78,6 +78,22 @@ public class CyrcleWallpaperService extends WallpaperService
 			}
 
 			@Override
+			public void onResume()
+			{
+				super.onResume();
+				
+				renderer.onResume();
+			}
+
+			@Override
+			public void onPause()
+			{
+				super.onPause();
+				
+				renderer.onPause();
+			}
+			
+			@Override
 			public SurfaceHolder getHolder()
 			{
 				return Engine.this == null ? holder : Engine.this.getSurfaceHolder();

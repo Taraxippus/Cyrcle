@@ -113,6 +113,14 @@
 			android:defaultValue="false"
 		/>
 	
+		<CheckBoxPreference
+            android:title="Enable wall repulsion"
+			android:summary="Circles will move away from the borders of the screen"
+            android:key="repulsionWall" 
+			android:defaultValue="false"
+			android:dependency="repulsion"
+		/>
+	
 		<Preference
             android:title="Repulsion strength"
 			android:summary="Change how far circles move away from each other"

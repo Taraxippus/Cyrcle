@@ -24,5 +24,5 @@ vec3 hsv2rgb(vec3 c)
 }
 void main()
 {
-	gl_FragColor = hav2rgb(rgb2hsv(texture2D(u_Texture, v_UV).rgb) * u_HSV, 1.0);
+	gl_FragColor = vec4(hsv2rgb(rgb2hsv(texture2D(u_Texture, v_UV).rgb) * vec3(1.0, u_HSV.gb) + vec3(u_HSV.r * 0.5 + 0.5, 0.0, 0.0)), 1.0);
 }

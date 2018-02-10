@@ -1,14 +1,12 @@
 package com.taraxippus.cyrcle;
 
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
@@ -18,12 +16,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Locale;
-import android.animation.Keyframe;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment
 {
@@ -39,6 +32,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 	{
 		super.onCreate(savedInstanceState);
 		preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		//getPreferenceManager().setSharedPreferencesMode(Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
 	}
 	
 	public void addBackButton()
@@ -562,7 +556,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 					final AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
 					alertDialog.setTitle("Change " + title);
 
-					final View v = getActivity().getLayoutInflater().inflate(R.layout.minmax, null);
+					final View v = getActivity().getLayoutInflater().inflate(R.layout.sliders, null);
 					alertDialog.setView(v);
 
 					((TextView) v.findViewById(R.id.title_a)).setText(titleA + ":");
@@ -606,7 +600,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							}	
 						});
 
-					final TextView text_b = (TextView) v.findViewById(R.id.text_max);
+					final TextView text_b = (TextView) v.findViewById(R.id.text_b);
 					text_b.setText(String.format(Locale.US, "%.2f", (int) (lastB * 100) / 100F));
 					text_b.setOnEditorActionListener(new EditText.OnEditorActionListener()
 						{
@@ -630,8 +624,8 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							}	
 						});
 
-					final TextView text_c = (TextView) v.findViewById(R.id.text_max);
-					text_c.setText(String.format(Locale.US, "%.2f", (int) (lastB * 100) / 100F));
+					final TextView text_c = (TextView) v.findViewById(R.id.text_c);
+					text_c.setText(String.format(Locale.US, "%.2f", (int) (lastC * 100) / 100F));
 					text_c.setOnEditorActionListener(new EditText.OnEditorActionListener()
 						{
 							@Override
@@ -734,7 +728,7 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 							@Override
 							public void onClick(DialogInterface p1, int p2)
 							{
-								preferences.edit().putFloat(key + "A", lastA).putFloat(key + "B", lastB).apply();
+								preferences.edit().putFloat(key + "A", lastA).putFloat(key + "B", lastB).putFloat(key + "C", lastC).apply();
 
 								p.setSummary(summary + "\nCurrent: "
 											 + (int) (lastA * 100) / 100F
@@ -762,6 +756,15 @@ public class PreferenceFragment extends android.preference.PreferenceFragment
 								slider_c.setProgress((int) ((defC - min) * scale));
 							}
 						});
+						
+					alertDialog.setOnDismissListener(new DialogInterface.OnDismissListener()
+					{
+							@Override
+							public void onDismiss(DialogInterface p1)
+							{
+								preferences.edit().putLong(key, System.currentTimeMillis()).apply();
+							}
+					});
 
 					return true;
 				}

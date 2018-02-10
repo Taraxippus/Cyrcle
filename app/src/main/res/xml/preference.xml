@@ -16,7 +16,21 @@
 		
 		<com.taraxippus.cyrcle.PresetPreference />
 
+		<Preference
+			android:summary="Tap to load, long press to delete or overwrite preset" 
+		/>
+	
 	</PreferenceCategory>
+	
+	<!--PreferenceCategory
+		android:title="Circle Types" >
+	
+		<com.taraxippus.cyrcle.CircleTypePreference />
+		
+		<Preference
+			android:summary="Tap to edit, long press to delete or copy" 
+		/>
+	</PreferenceCategory-->
 	
 	<PreferenceCategory
 		android:title="Preferences" >

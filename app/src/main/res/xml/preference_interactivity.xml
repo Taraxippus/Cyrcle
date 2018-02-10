@@ -12,7 +12,7 @@
 
 		<CheckBoxPreference
             android:title="Enable touch input"
-			android:summary="Enable touch interactivity"
+			android:summary="Push circles away when you touch the screen"
             android:key="touch" 
 			android:defaultValue="true"
 		/>
@@ -25,6 +25,14 @@
 			android:dependency="touch"
 		/>
 
+		<CheckBoxPreference
+            android:title="Size effects strength"
+			android:summary="Smaller circles get pushed away further"
+            android:key="touchSize" 
+			android:defaultValue="true"
+			android:dependency="touch"
+		/>
+	
 		<Preference
             android:title="Touch sensitivity"
 			android:summary="Change how sensitive the circles react to a touch"
@@ -39,7 +47,7 @@
 			
 		<CheckBoxPreference
             android:title="Enable swipe"
-			android:summary="Enable swipe interactivity"
+			android:summary="Move circles to the side when you switch honescreens"
             android:key="swipe" 
 			android:defaultValue="true"
 		/>
@@ -49,6 +57,14 @@
 			android:summary="Invert the direction of the swipe animation"
             android:key="swipeInvert" 
 			android:defaultValue="false"
+			android:dependency="swipe"
+		/>
+	
+		<CheckBoxPreference
+            android:title="Size effects strength"
+			android:summary="Smaller circles move faster"
+            android:key="swipeSize" 
+			android:defaultValue="true"
 			android:dependency="swipe"
 		/>
 
@@ -70,6 +86,47 @@
             android:key="tap" 
 			android:defaultValue="true"
 		/>
+	
+		<Preference
+            android:title="Kill Animation Duration"
+			android:summary="Change duration of the die animation. Only works when lifecycle is enabled."
+            android:key="tapDuration" 
+			android:dependency="tap"
+		/>
 
+	</PreferenceCategory>
+	
+	<PreferenceCategory 
+		android:title="Gravity">
+
+		<CheckBoxPreference
+            android:title="Use device rotation for gravity"
+			android:summary="Let device rotation effect the movements of the circles. Only enable if you don't care about your battery"
+            android:key="gravity" 
+			android:defaultValue="true"
+		/>
+
+		<CheckBoxPreference
+            android:title="Size effects strength"
+			android:summary="Smaller circles move faster"
+            android:key="touchSize" 
+			android:defaultValue="true"
+			android:dependency="gravity"
+		/>
+	
+		<Preference
+            android:title="Horizontal gravity"
+			android:summary="Change which axis effect the horizontal movement"
+            android:key="gravityX" 
+			android:dependency="gravity"
+		/>
+	
+		<Preference
+            android:title="Vertical gravity"
+			android:summary="Change which axis effect the vertical movement"
+            android:key="gravityY" 
+			android:dependency="gravity"
+		/>
+	
 	</PreferenceCategory>
 </PreferenceScreen>

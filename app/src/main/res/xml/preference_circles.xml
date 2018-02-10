@@ -67,7 +67,7 @@
 
 		<Preference
             android:title="Group size"
-			android:summary="Spawn circles in groups of a certain size"
+			android:summary="Spawn circles in groups of a certain size. One means no groups are spawned"
             android:key="groupSize" 
 		/>
 
@@ -88,6 +88,13 @@
 			android:summary="Change how far away circles in a group are from eachother"
             android:key="groupOffset" 
 		/>
+	
+		<CheckBoxPreference
+            android:title="Stay connected"
+			android:summary="Circles in a group will stay together when they shrink"
+            android:key="groupConnected" 
+			android:defaultValue="false"
+		/>
 
 	</PreferenceCategory>
 	
@@ -101,12 +108,14 @@
 			android:defaultValue="true"
 		/>
 
-		<CheckBoxPreference
-            android:title="Enable additive blur"
-			android:summary="Add blur to default texture"
-            android:key="blurAdd" 
-			android:defaultValue="false"
+		<ListPreference
+            android:title="Choose blur mode"
+			android:summary="Change how blur is applied to the texture"
+            android:key="blurMode" 
 			android:dependency="blur"
+			android:entries="@array/blur"
+			android:entryValues="@array/blurValues"
+			android:defaultValue="normal"
 		/>
 	
 		<Preference

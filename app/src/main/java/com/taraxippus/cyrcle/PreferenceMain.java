@@ -20,7 +20,7 @@ public class PreferenceMain extends PreferenceFragment
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.preference);
-
+		
 		findPreference("setWallpaper").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() 
 			{
 				@Override
@@ -46,7 +46,9 @@ public class PreferenceMain extends PreferenceFragment
 		chooseValue("fps", "max FPS", " fps", 5, 60, 1, 45);
 		chooseValue("ups", "Update frequency", " ups", 5, 60, 1, 45);
 		
-		findPreference("preferenceCircles").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+		Preference p = findPreference("preferenceCircles");
+		if (p != null)
+		p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 			{
 				@Override
 				public boolean onPreferenceClick(Preference p1)

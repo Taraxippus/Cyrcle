@@ -45,6 +45,13 @@
 			android:dependency="backgroundTexture"
 		/>
 
+		<Preference
+            android:title="Blur background"
+			android:summary="Change strength of the blur"
+            android:key="backgroundBlurStrength" 
+			android:dependency="backgroundTexture"
+		/>
+	
 		<CheckBoxPreference
 			android:title="Enable background swipe animation"
 			android:summary="Move image when changing between homescreens"
@@ -53,6 +60,13 @@
 			android:dependency="backgroundTexture"
 		/>
 	
+		<CheckBoxPreference
+			android:title="Invert swipe animation"
+			android:summary="Invert the direction of the wallpaper swipe animation"
+			android:key="backgroundTextureSwipeInverse" 
+			android:defaultValue="false"
+			android:dependency="backgroundTextureSwipe"
+		/>
 	</PreferenceCategory>
 	
 	<PreferenceCategory 

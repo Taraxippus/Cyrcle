@@ -5,13 +5,12 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Outline;
-import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,18 +23,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import android.widget.Toast;
 
 public class PresetPreference extends Preference
 {
@@ -57,7 +57,7 @@ public class PresetPreference extends Preference
 	@Override
 	protected View onCreateView(ViewGroup parent)
 	{
-		globalPreferences = getContext().getSharedPreferences("com.taraxippus.cyrcle.GLOBAL_PREFERENCES",  Context.MODE_PRIVATE);
+		globalPreferences = getContext().getSharedPreferences(getContext().getPackageName() + "_global",  Context.MODE_PRIVATE);
 	
 		this.presets.clear();
 		
@@ -71,14 +71,31 @@ public class PresetPreference extends Preference
 			this.presets.add(preset);
 			
 			if (((WallpaperPreferenceActivity) getContext()).presetCache.get(preset) == null)
-				((WallpaperPreferenceActivity) getContext()).presetCache.put(preset, BitmapFactory.decodeFile(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + preset + ".png"));
+			{
+				Bitmap bitmap = BitmapFactory.decodeFile(getContext().getFilesDir() + "/" + preset + ".png");
+				if (bitmap != null)
+					((WallpaperPreferenceActivity) getContext()).presetCache.put(preset, bitmap);	
+			}
 		}
 		
 		recyclerView = new RecyclerView(getContext());
 		recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 		recyclerView.setAdapter(new PresetAdapter());
+		recyclerView.setBackgroundColor(0x30000000);
 	
-		return recyclerView;
+		FrameLayout layout = new FrameLayout(getContext());
+		View separator = new View(getContext());
+		layout.addView(separator);
+		TypedValue value = new TypedValue();
+		getContext().getTheme().resolveAttribute(android.R.attr.listDivider, value, true);
+		separator.setBackgroundResource(value.resourceId);
+		((FrameLayout.LayoutParams) separator.getLayoutParams()).height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getContext().getResources().getDisplayMetrics());
+		((FrameLayout.LayoutParams) separator.getLayoutParams()).topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getContext().getResources().getDisplayMetrics());
+
+		layout.addView(recyclerView);
+		((FrameLayout.LayoutParams) recyclerView.getLayoutParams()).topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 9, getContext().getResources().getDisplayMetrics());
+
+		return layout;
 	}
 
 	public void savePresets()
@@ -94,36 +111,25 @@ public class PresetPreference extends Preference
 		globalPreferences.edit().putString("presets", sb.toString()).apply();
 	}
 	
-	public void copySharedPreferences(SharedPreferences from, SharedPreferences to)
+	public void copy(File src, File dst)
 	{
-		SharedPreferences.Editor editor = to.edit();
-		Map<String, ?> all = from.getAll();
-
-		editor.clear();
+		if (src == null || !src.exists())
+			return;
 		
-		for (String key : all.keySet())
+		try
 		{
-			if (all.get(key) instanceof String)
-				editor.putString(key, (String) all.get(key));
+			InputStream in = new FileInputStream(src);
+			OutputStream out = new FileOutputStream(dst);
 
-			else if (all.get(key) instanceof Boolean)
-				editor.putBoolean(key, (Boolean) all.get(key));
-
-			else if (all.get(key) instanceof Integer)
-				editor.putInt(key, (Integer) all.get(key));
-
-			else if (all.get(key) instanceof Float)
-				editor.putFloat(key, (Float) all.get(key));
-
-			else if (all.get(key) instanceof Long)
-				editor.putLong(key, (Long) all.get(key));
-
-			else if (all.get(key) instanceof Set)
-				editor.putStringSet(key, (Set<String>) all.get(key));
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0) 
+				out.write(buf, 0, len);
+			
+			in.close();
+			out.close();
 		}
-
-
-		editor.apply();
+		catch (Exception e) { e.printStackTrace(); }
 	}
 	
 	public class PresetViewHolder extends RecyclerView.ViewHolder
@@ -201,7 +207,10 @@ public class PresetPreference extends Preference
 						final int selected = presets.size() - 1;
 						recyclerView.getAdapter().notifyItemInserted(presets.size() - 1);
 
-						copySharedPreferences(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext().getSharedPreferences("com.taraxippus.cyrcle.presets." + name,  Context.MODE_PRIVATE));
+						copySharedPreferences(getContext(), null, "preferences");
+						WallpaperPreferenceActivity.zipFromData(getContext(), getContext().getFilesDir() + "/" + presets.get(selected) + ".preset", "./shared_prefs/preferences.xml", "circleTextureFile", "ringTextureFile", "backgroundTextureFile");
+						//new File(getContext().getFilesDir().getParent() + "/shared_prefs/preferences.xml").delete();
+						
 						savePresets();
 						
 						((WallpaperPreferenceActivity) getContext()).renderer.renderToBitmap(new Runnable()
@@ -219,7 +228,7 @@ public class PresetPreference extends Preference
 
 									try
 									{
-										FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(selected) + ".png", Context.MODE_PRIVATE);
+										FileOutputStream fOut = getContext().openFileOutput(presets.get(selected) + ".png", Context.MODE_PRIVATE);
 										bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
 										fOut.flush();
 										fOut.close();
@@ -296,9 +305,15 @@ public class PresetPreference extends Preference
 
 				((PresetViewHolder) holder).text.setText(presets.get(position));
 				if (((WallpaperPreferenceActivity) getContext()).presetCache.get(presets.get(position)) != null)
+				{
 					((PresetViewHolder) holder).image.setImageBitmap(((WallpaperPreferenceActivity) getContext()).presetCache.get(presets.get(position)));
+					((PresetViewHolder) holder).image.setBackgroundColor(0xFF000000);
+				}
 				else
+				{
 					((PresetViewHolder) holder).image.setImageResource(R.drawable.launcher);
+					((PresetViewHolder) holder).image.setBackgroundColor(0x00000000);
+				}
 			}
 		}
 
@@ -323,7 +338,23 @@ public class PresetPreference extends Preference
 			notifyItemChanged(old);
 			notifyItemChanged(selected);
 			
-			copySharedPreferences(getContext().getSharedPreferences("com.taraxippus.cyrcle.presets." + presets.get(selected),  Context.MODE_PRIVATE), PreferenceManager.getDefaultSharedPreferences(getContext()));
+			File f;
+			
+			f = new File(getContext().getFilesDir() + "/circleTextureFile");
+			if (f.exists())
+				f.delete();
+				
+			f = new File(getContext().getFilesDir() + "/ringTextureFile");
+			if (f.exists())
+				f.delete();
+				
+			f = new File(getContext().getFilesDir() + "/backgroundTextureFile");
+			if (f.exists())
+				f.delete();
+				
+			WallpaperPreferenceActivity.unZipToData(getContext(), getContext().getFilesDir() + "/" + presets.get(selected) + ".preset");
+			copySharedPreferences(getContext(), "preferences", null);
+			//new File(getContext().getFilesDir().getParent() + "/shared_prefs/preferences.xml").delete();
 		}
 
 		@Override
@@ -345,8 +376,8 @@ public class PresetPreference extends Preference
 
 								((WallpaperPreferenceActivity) getContext()).presetCache.remove(presets.get(index));
 								
-								new File(getContext().getFilesDir() + "/com.taraxippus.cyrcle.presets." + presets.get(index) + ".png").delete();
-								new File(getContext().getFilesDir().getParentFile() + "/shared_prefs/com.taraxippus.cyrcle.presets." + presets.get(index) + ".xml").delete();
+								new File(getContext().getFilesDir() + "/" + presets.get(index) + ".png").delete();
+								new File(getContext().getFilesDir() + "/" + presets.get(index) + ".preset").delete();
 
 								presets.remove(index);
 								notifyItemRemoved(index);
@@ -360,8 +391,9 @@ public class PresetPreference extends Preference
 
 								notifyItemChanged(old);
 								notifyItemChanged(selected);
-								copySharedPreferences(PreferenceManager.getDefaultSharedPreferences(getContext()), getContext().getSharedPreferences("com.taraxippus.cyrcle.presets." + presets.get(index),  Context.MODE_PRIVATE));
-								
+								copySharedPreferences(getContext(), null, "preferences");
+								WallpaperPreferenceActivity.zipFromData(getContext(), getContext().getFilesDir() + "/" + presets.get(index) + ".preset", "./shared_prefs/preferences.xml", "circleTextureFile", "ringTextureFile", "backgroundTextureFile");
+								//new File(getContext().getFilesDir().getParent() + "/shared_prefs/preferences.xml").delete();
 								((WallpaperPreferenceActivity) getContext()).renderer.renderToBitmap(new Runnable()
 									{
 										@Override
@@ -377,7 +409,7 @@ public class PresetPreference extends Preference
 											
 											try
 											{
-												FileOutputStream fOut = getContext().openFileOutput("com.taraxippus.cyrcle.presets." + presets.get(selected) + ".png", Context.MODE_PRIVATE);
+												FileOutputStream fOut = getContext().openFileOutput(presets.get(selected) + ".png", Context.MODE_PRIVATE);
 												bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
 												fOut.flush();
 												fOut.close();
@@ -391,6 +423,15 @@ public class PresetPreference extends Preference
 									
 								return true;
 								
+							case R.id.item_export:
+								File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+								dir.mkdirs();
+								
+								copy(new File(getContext().getFilesDir().getAbsolutePath() + "/" + presets.get(index) + ".preset"), new File(dir + "/" + presets.get(index) + ".preset"));
+								
+								Toast.makeText(getContext(), "Exported preset to\nsdcard/Documents/" + presets.get(index) + ".preset", Toast.LENGTH_SHORT).show();
+								return true;
+								
 							default:
 								return false;
 						}
@@ -402,5 +443,38 @@ public class PresetPreference extends Preference
 			
 			return true;
 		}
+	}
+	
+	public static void copySharedPreferences(Context context, String s1, String s2)
+	{
+		SharedPreferences p1 = s1 == null ? PreferenceManager.getDefaultSharedPreferences(context) : context.getSharedPreferences(s1, Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+		SharedPreferences p2 = s2 == null ? PreferenceManager.getDefaultSharedPreferences(context) : context.getSharedPreferences(s2, Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS);
+		
+		SharedPreferences.Editor e = p2.edit();
+		e.clear();
+		
+		for (Map.Entry<String, ?> entry : p1.getAll().entrySet())
+		{
+			if (entry.getValue() instanceof Float)
+				e.putFloat(entry.getKey(), (Float) entry.getValue());
+				
+			else if (entry.getValue() instanceof Integer)
+				e.putInt(entry.getKey(), (Integer) entry.getValue());
+			
+			else if (entry.getValue() instanceof Long)
+				e.putLong(entry.getKey(), (Long) entry.getValue());
+			
+			else if (entry.getValue() instanceof String)
+				e.putString(entry.getKey(), (String) entry.getValue());
+			
+			else if (entry.getValue() instanceof Boolean)
+				e.putBoolean(entry.getKey(), (Boolean) entry.getValue());
+			
+			else if (entry.getValue() instanceof Set)
+				e.putStringSet(entry.getKey(), (Set<String>) entry.getValue());
+		}
+		
+		e.putLong("refresh", System.currentTimeMillis());
+		e.apply();
 	}
 }

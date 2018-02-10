@@ -15,7 +15,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal"
-			android:paddingBottom="16dp"
+			android:paddingBottom="8dp"
 			android:weightSum="1">
 
 			<TextView
@@ -46,6 +46,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:orientation="horizontal"
+			android:paddingBottom="8dp"
 			android:weightSum="1">
 
 			<TextView

@@ -9,4 +9,16 @@
 		<item>Wave</item>
 		<item>Double wave</item>
 	</string-array>
+	
+	<string-array name="blurValues">
+		<item>normal</item>
+		<item>inner</item>
+		<item>outer</item>
+	</string-array>
+	
+	<string-array name="blur">
+		<item>Normal</item>
+		<item>Inner Bloom</item>
+		<item>Outer Bloom</item>
+	</string-array>
 </resources>

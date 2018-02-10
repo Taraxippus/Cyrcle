@@ -106,7 +106,7 @@ public class Program
 		}
 	}
 	
-	private static String getString(Context context, int resourceId)
+	public static String getString(Context context, int resourceId)
 	{
 		InputStream is = context.getResources().openRawResource(resourceId);
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));

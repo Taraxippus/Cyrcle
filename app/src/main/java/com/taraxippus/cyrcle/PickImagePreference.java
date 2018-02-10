@@ -27,7 +27,7 @@ public class PickImagePreference extends Preference
 
 	public void init()
 	{
-		requestCode = pickImageKeys.size();
+		requestCode = pickImageKeys.size() + 0xFF;
 		pickImageKeys.add(getKey());
 		setWidgetLayoutResource(R.layout.delete);
 	}
@@ -39,6 +39,7 @@ public class PickImagePreference extends Preference
 		
 		Intent i = new Intent(Intent.ACTION_GET_CONTENT);
 		i.setType("image/*");
+		i.addCategory(Intent.CATEGORY_OPENABLE);
 		
 		((Activity) getContext()).startActivityForResult(i, requestCode);
 	}
@@ -58,7 +59,7 @@ public class PickImagePreference extends Preference
 					{
 						getEditor().putString(getKey(), "").apply();
 						setSummary(getSummary());
-						new File(getContext().getFilesDir().getPath() + getKey()).delete();
+						new File(getContext().getFilesDir().getPath() + "/" + getKey()).delete();
 					}
 					catch (Exception e)
 					{

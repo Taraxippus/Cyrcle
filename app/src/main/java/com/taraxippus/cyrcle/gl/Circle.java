@@ -2,6 +2,7 @@ package com.taraxippus.cyrcle.gl;
 
 import android.graphics.*;
 import java.nio.*;
+import java.security.acl.Group;
 
 public class Circle
 {
@@ -15,7 +16,7 @@ public class Circle
 	float randomPosX, randomPosY, prevRandomPosX, prevRandomPosY;
 	float targetX, targetY;
 	float velX, velY, directionVelX, directionVelY;
-	float rotation, rotationVel, prevRotation, prevOffset, offset;
+	float rotation, rotationVel, prevRotation, prevOffset, offset, groupOffset;
 	float red, green, blue, alpha;
 	float prevRed, prevGreen, prevBlue, prevAlpha;
 	float startRed, startGreen, startBlue, startAlpha;
@@ -27,6 +28,8 @@ public class Circle
 	float randomScaleX, randomScaleY;
 	float flickeringTime, flickeringDuration, flickeringTick;
 	float maxLifeTime, lifeTime;
+	boolean isDead;
+	float lifeTimeAtDeath;
 	
 	int texture;
 	
@@ -81,6 +84,7 @@ public class Circle
 		
 		velX = 0;
 		velY = 0;
+		isDead = false;
 		
 		int color1 = Color.parseColor(renderer.preferences.getString("colorCircle1", "#ffff00"));
 		int color2 = Color.parseColor(renderer.preferences.getString("colorCircle2", "#ffcc00"));
@@ -149,11 +153,12 @@ public class Circle
 		
 		if (parent != null && parent != this)
 		{
-			size = startSize = parent.size * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
-			targetSize = parent.targetSize * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (renderer.groupSizeFactorMin - renderer.groupSizeFactorMax));
+			size = startSize = parent.size * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (-renderer.groupSizeFactorMin + renderer.groupSizeFactorMax));
+			targetSize = parent.targetSize * (renderer.groupSizeFactorMin + renderer.random.nextFloat() * (-renderer.groupSizeFactorMin + renderer.groupSizeFactorMax));
 			
-			rotation = parent.rotation;
-			offset = parent.size * (renderer.groupOffsetMin + renderer.random.nextFloat() * (renderer.groupOffsetMin + renderer.groupOffsetMax));
+			rotation = 360 * renderer.random.nextFloat() - 180;
+			groupOffset = renderer.groupOffsetMin + renderer.random.nextFloat() * (-renderer.groupOffsetMin + renderer.groupOffsetMax);
+			offset = 0.5F * (size + parent.size) * groupOffset;
 			
 			texture = parent.texture;
 			maxLifeTime = parent.maxLifeTime;
@@ -180,8 +185,8 @@ public class Circle
 			
 			if (renderer.rotation)
 			{
-				rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180)) * size;
-				rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45)) * size;
+				rotation = renderer.preferences.getFloat("rotationStartMin", -180) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationStartMax", 180) - renderer.preferences.getFloat("rotationStartMin", -180));
+				rotationVel = renderer.preferences.getFloat("rotationSpeedMin", -45) + renderer.random.nextFloat() * (renderer.preferences.getFloat("rotationSpeedMax", 45) - renderer.preferences.getFloat("rotationSpeedMin", -45));
 
 				offset = size * (renderer.offsetMin + renderer.random.nextFloat() * (renderer.offsetMax - renderer.offsetMin));
 			}
@@ -275,6 +280,36 @@ public class Circle
 		}
 	}
 	
+	public void kill()
+	{
+		if (parent != this && parent != null)
+			parent.kill();
+		
+		else
+		{
+			killChild();
+			
+			if (parent == this)
+				for (int i = 1; i < renderer.groupSize && index + i < renderer.circleCount && renderer.circles[index + i] != null; ++i)
+					renderer.circles[index + i].killChild();
+		}
+	}
+	
+	public void killChild()
+	{
+		if (!renderer.respawn)
+			spawn(true);
+		
+		else
+		{
+			if (isDead)
+				return;
+			
+			isDead = true;
+			lifeTimeAtDeath = lifeTime;
+		}
+	}
+	
 	float x, y, sX, sY, rot, sin, cos, off, r, g, b, a;
 	public void buffer(FloatBuffer vertices, float partial)
 	{
@@ -287,7 +322,7 @@ public class Circle
 		b = blue * partial + (1 - partial) * prevBlue;
 		a = alpha * partial + (1 - partial) * prevAlpha;
 
-		if (!renderer.rotation && (parent == null || parent == this))
+		if (!(renderer.rotation || (parent != null && parent != this)))
 		{
 			vertices.put(x - sX);
 			vertices.put(y - sY);
@@ -300,7 +335,7 @@ public class Circle
 			vertices.put(0);
 			vertices.put(1);
 			vertices.put(texture);
-
+			
 
 			vertices.put(x - sX);
 			vertices.put(y + sY);
@@ -343,12 +378,15 @@ public class Circle
 		else
 		{
 			rot = (float) ((rotation * partial + (1 - partial) * prevRotation) / 180 * Math.PI);
+			if (parent != null && parent != this)
+				rot += (float) ((parent.rotation * partial + (1 - partial) * parent.prevRotation) / 180 * Math.PI);
+			
 			cos = (float) Math.cos(rot);
 			sin = (float) Math.sin(rot);
 			off = offset * partial + prevOffset * (1 - partial);
 
-			vertices.put(x + cos * (-sX - off) - sin * (-sY- off) + off);
-			vertices.put(y + sin * (-sX - off) + cos * (-sY - off) + off);
+			vertices.put(x + cos * (-sX - off) - sin * (-sY - off));
+			vertices.put(y + sin * (-sX - off) + cos * (-sY - off));
 
 			vertices.put(r);
 			vertices.put(g);
@@ -359,8 +397,8 @@ public class Circle
 			vertices.put(1);
 			vertices.put(texture);
 
-			vertices.put(x + cos * (-sX - off) - sin * (sY - off) + off);
-			vertices.put(y + sin * (-sX - off) + cos * (sY - off) + off);
+			vertices.put(x + cos * (-sX - off) - sin * (sY - off));
+			vertices.put(y + sin * (-sX - off) + cos * (sY - off));
 
 			vertices.put(r);
 			vertices.put(g);
@@ -369,22 +407,22 @@ public class Circle
 
 			vertices.put(0);
 			vertices.put(0);
-			vertices.put(texture);
-			
-			vertices.put(x + cos * (sX - off) - sin * (-sY - off) + off);
-			vertices.put(y + sin * (sX - off) + cos * (-sY - off) + off);
-
-			vertices.put(r);
-			vertices.put(g);
-			vertices.put(b);
-			vertices.put(a);
-
-			vertices.put(1);
-			vertices.put(1);
 			vertices.put(texture);
 			
-			vertices.put(x + cos * (sX - off) - sin * (sY - off) + off);
-			vertices.put(y + sin * (sX - off) + cos * (sY - off) + off);
+			vertices.put(x + cos * (sX - off) - sin * (-sY - off));
+			vertices.put(y + sin * (sX - off) + cos * (-sY - off));
+
+			vertices.put(r);
+			vertices.put(g);
+			vertices.put(b);
+			vertices.put(a);
+
+			vertices.put(1);
+			vertices.put(1);
+			vertices.put(texture);
+			
+			vertices.put(x + cos * (sX - off) - sin * (sY - off));
+			vertices.put(y + sin * (sX - off) + cos * (sY - off));
 
 			vertices.put(r);
 			vertices.put(g);
@@ -397,7 +435,7 @@ public class Circle
 		}
 	}
 	
-	private float deltaX, deltaY, length, deltaLifeTime;
+	private float deltaX, deltaY, length, deltaLifeTime, deltaKillTime;
 	public void update(float time, float delta)
 	{
 		prevPosX = posX;
@@ -428,7 +466,10 @@ public class Circle
 				alpha = lifeTime / renderer.fadeOut;
 
 				if (lifeTime <= delta)
+				{
 					spawn(true);
+					return;
+				}
 			}
 			
 			deltaLifeTime = lifeTime / maxLifeTime;
@@ -450,7 +491,16 @@ public class Circle
 				size = startSize * deltaLifeTime + (1 - deltaLifeTime) * targetSize;
 			}
 			
-			lifeTime -= delta;
+			if (isDead)
+			{
+				deltaKillTime = (lifeTimeAtDeath - lifeTime) / lifeTimeAtDeath;
+				alpha *= 1 - deltaKillTime;
+				size *= 1 + 2 * Math.pow(deltaKillTime, 2);
+				
+				lifeTime -= lifeTimeAtDeath * delta / renderer.killAnimation;
+			}
+			else
+				lifeTime -= delta;
 		}
 	
 		if (parent != null && parent != this)
@@ -458,7 +508,9 @@ public class Circle
 			posX = parent.posX + parent.randomPosX;
 			posY = parent.posY + parent.randomPosY;
 			
-			rotation = parent.rotation;
+			if (renderer.connected)
+				offset = 0.5F * (size + parent.size) * groupOffset;
+		
 		}
 		else
 		{
@@ -468,7 +520,7 @@ public class Circle
 
 			if (length < 0.15F)
 				setTarget();
-
+				
 			velX = velX * (float) Math.pow(1 - renderer.damping, delta * 60) + deltaX / length / size * 0.00025F * speed;
 			velY = velY * (float) Math.pow(1 - renderer.damping, delta * 60) + deltaY / length / size * 0.00025F * speed;
 
@@ -539,8 +591,14 @@ public class Circle
 			}
 		}
 		
-		randomPosX = randomPosX * 0.9F + (float) Math.cos(time * randomSpeedX * 2 + randomOffsetX) * randomScaleX * 0.015F;
-		randomPosY = randomPosY * 0.9F + (float) Math.cos(time * randomSpeedY * 2 + randomOffsetY) * randomScaleY * 0.015F;
+		if (!renderer.connected || parent == null || parent == this)
+		{
+			randomPosX = randomPosX * 0.9F + (float) Math.cos(time * randomSpeedX * 2 + randomOffsetX) * randomScaleX * 0.015F;
+			randomPosY = randomPosY * 0.9F + (float) Math.cos(time * randomSpeedY * 2 + randomOffsetY) * randomScaleY * 0.015F;
+		}
+		else
+			randomPosX = randomPosY = 0;
+		
 		
 		if (flickeringTick > 0)
 		{
